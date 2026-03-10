@@ -1,0 +1,41 @@
+/* TET: do - vang */
+body.theme-tet {
+    background: #fff4d6;
+}
+
+.theme-tet .navbar,
+.theme-tet footer {
+    background: #7a1e00 !important;
+}
+
+.theme-tet .nav-link,
+.theme-tet .nav-icon,
+.theme-tet .navbar-brand {
+    color: #fff !important;
+}
+
+.theme-tet {
+    --accent-color: #f4c542;
+    --shell-bg: #7a1e00;
+    --shell-text: #ffffff;
+    --shell-muted: rgba(255, 255, 255, 0.78);
+}
+
+.theme-tet .btn-primary {
+    background: #c1121f;
+    border-color: #c1121f;
+}
+
+.theme-tet .btn-primary:hover {
+    filter: brightness(0.95);
+}
+
+.theme-tet .event-badge {
+    background: #f4c542;
+    color: #7a1e00;
+}
+
+.theme-tet .event-hero {
+    border: 2px solid rgba(193, 18, 31, 0.35);
+    box-shadow: 0 10px 24px rgba(122, 30, 0, 0.2);
+}

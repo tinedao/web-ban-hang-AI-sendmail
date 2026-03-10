@@ -1,0 +1,188 @@
+/* =========================================
+   ADMIN LUXURY THEME
+   ========================================= */
+:root {
+    --primary-color: #111111;
+    --secondary-color: #666666;
+    --accent-color: #c5a059; /* Gold */
+    --bg-light: #f8f9fa;
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    color: var(--primary-color);
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: linear-gradient(180deg, #111 0%, #1a1a1a 100%);
+    color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.sidebar-brand {
+    padding: 25px 20px;
+    background: #000;
+    border-bottom: 1px solid #222;
+    text-align: center;
+}
+
+.sidebar-brand h4 {
+    color: #fff;
+    letter-spacing: 2px;
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.nav-pills .nav-link {
+    color: #aaa;
+    border-radius: 0;
+    padding: 16px 25px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    border-left: 3px solid transparent;
+}
+
+.nav-pills .nav-link:hover {
+    background: rgba(255,255,255,0.03);
+    color: var(--accent-color);
+    padding-left: 30px;
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(90deg, rgba(197, 160, 89, 0.15), transparent);
+    color: var(--accent-color);
+    border-left-color: var(--accent-color);
+}
+
+.nav-pills .nav-link i {
+    width: 25px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.logout-link {
+    margin-top: auto;
+    border-top: 1px solid #222;
+}
+
+/* --- MAIN CONTENT --- */
+.main-content {
+    margin-left: 260px;
+    padding: 30px;
+    min-height: 100vh;
+}
+
+/* --- CARDS --- */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Dashboard Stats Cards */
+.card-luxury-dark {
+    background: linear-gradient(135deg, #111, #2c2c2c);
+    color: var(--accent-color);
+}
+
+.card-luxury-gold {
+    background: linear-gradient(135deg, #c5a059, #d4af37);
+    color: #fff;
+}
+
+.card-luxury-dark h6, .card-luxury-gold h6 {
+    color: inherit;
+    opacity: 0.8;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+}
+
+.card-luxury-dark h2, .card-luxury-gold h2 {
+    color: inherit;
+    font-family: var(--font-heading);
+}
+
+/* --- TABLES --- */
+.table {
+    vertical-align: middle;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid #eee;
+    padding: 15px;
+}
+
+/* --- BUTTONS --- */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--accent-color);
+}
+
+.btn-primary:hover {
+    background-color: #000;
+    border-color: var(--accent-color);
+    color: #fff;
+}
+
+/* --- TABS (Luxury Style) --- */
+.nav-tabs {
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 1.5rem;
+    gap: 5px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #888;
+    font-family: var(--font-heading);
+    font-weight: 500;
+    padding: 12px 25px;
+    transition: all 0.3s ease;
+    background: transparent;
+    margin-bottom: -1px;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary-color);
+    border-bottom-color: rgba(197, 160, 89, 0.3);
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    background-color: transparent;
+    border-bottom-color: var(--accent-color);
+    font-weight: 700;
+}
