@@ -1,4 +1,4 @@
--- --------------------------------------------------------
+﻿-- --------------------------------------------------------
 -- CSDL cho dự án web bán đồ lưu niệm theo sự kiện
 -- Hỗ trợ tiếng Việt chuẩn UTF-8 (utf8mb4 + utf8mb4_vietnamese_ci)
 -- --------------------------------------------------------
@@ -61,10 +61,10 @@ CREATE TABLE `events` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
 INSERT INTO `events` (`id`, `slug`, `name`, `start_date`, `end_date`, `is_enabled`, `priority`, `created_at`) VALUES
-(1, 'tet', 'Tết Âm lịch 2026', '2026-01-01', '2026-03-31', 1, 100, '2026-01-01 00:00:00'),
-(2, 'gpmnam', 'Kỷ niệm 30/4 năm 2026', '2026-04-01', '2026-06-30', 1, 90, '2026-01-01 00:00:00'),
-(3, 'quockhanh', 'Quốc khánh 2/9 năm 2026', '2026-07-01', '2026-09-30', 1, 80, '2026-01-01 00:00:00'),
-(4, 'noel', 'Noel 2026', '2026-10-01', '2026-12-31', 1, 70, '2026-01-01 00:00:00'),
+(1, 'tet', 'Tết Âm lịch 2026', '2026-02-01', '2026-02-15', 1, 100, '2026-01-01 00:00:00'),
+(2, 'gpmnam', 'Kỷ niệm 30/4 năm 2026', '2026-04-25', '2026-05-02', 1, 90, '2026-01-01 00:00:00'),
+(3, 'quockhanh', 'Quốc khánh 2/9 năm 2026', '2026-08-28', '2026-09-05', 1, 80, '2026-01-01 00:00:00'),
+(4, 'noel', 'Noel 2026', '2026-12-15', '2026-12-31', 1, 70, '2026-01-01 00:00:00'),
 (5, 'default', 'Sản phẩm thường ngày', '2026-01-01', '2026-12-31', 1, 10, '2026-01-01 00:00:00');
 
 -- --------------------------------------------------------
@@ -104,21 +104,6 @@ CREATE TABLE `products` (
   CONSTRAINT `fk_products_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
-INSERT INTO `products` (`id`, `name`, `description`, `price`, `stock`, `image`, `category_id`, `event_slug`, `created_at`) VALUES
-(1, 'Áo thun Tết Phúc Lộc', 'Áo thun form rộng, họa tiết Tết đỏ vàng, phù hợp đi chơi xuân.', 350000.00, 40, 'placeholder.jpg', 2, 'tet', '2026-01-20 09:00:00'),
-(2, 'Nón lưỡi trai Tết Đỏ Vàng', 'Nón lưỡi trai phối màu lễ hội, chất liệu thoáng mát.', 220000.00, 55, 'placeholder.jpg', 5, 'tet', '2026-01-22 10:30:00'),
-(3, 'Vòng tay may mắn ngày Tết', 'Vòng tay phong cách lễ hội, thích hợp làm quà đầu năm.', 180000.00, 70, 'placeholder.jpg', 3, 'tet', '2026-01-23 14:00:00'),
-(4, 'Quần jogger chủ đề 30/4', 'Quần jogger năng động, dễ phối áo sự kiện.', 420000.00, 35, 'placeholder.jpg', 1, 'gpmnam', '2026-04-10 11:00:00'),
-(5, 'Áo polo kỷ niệm 30/4', 'Áo polo in biểu tượng kỷ niệm, mặc thoải mái cả ngày.', 390000.00, 32, 'placeholder.jpg', 2, 'gpmnam', '2026-04-11 15:20:00'),
-(6, 'Phụ kiện cờ mini 30/4', 'Set phụ kiện cầm tay dùng cho hoạt động sự kiện.', 95000.00, 120, 'placeholder.jpg', 7, 'gpmnam', '2026-04-12 16:00:00'),
-(7, 'Áo sơ mi Quốc khánh 2/9', 'Áo sơ mi tông đỏ trang trọng, phù hợp ngày lễ.', 480000.00, 28, 'placeholder.jpg', 2, 'quockhanh', '2026-08-20 10:00:00'),
-(8, 'Nón bucket Quốc khánh', 'Nón bucket trẻ trung, nổi bật theo chủ đề 2/9.', 210000.00, 45, 'placeholder.jpg', 5, 'quockhanh', '2026-08-21 12:00:00'),
-(9, 'Vòng cổ biểu tượng Việt Nam', 'Vòng cổ thời trang, thiết kế biểu tượng tinh gọn.', 260000.00, 50, 'placeholder.jpg', 4, 'quockhanh', '2026-08-21 12:30:00'),
-(10, 'Áo len Noel Snow', 'Áo len mềm, giữ ấm tốt, phù hợp mùa lễ cuối năm.', 520000.00, 24, 'placeholder.jpg', 2, 'noel', '2026-12-05 09:30:00'),
-(11, 'Nón len Noel', 'Nón len phối màu đỏ xanh, dùng cho tiệc Giáng sinh.', 190000.00, 60, 'placeholder.jpg', 5, 'noel', '2026-12-06 11:30:00'),
-(12, 'Đồ trang trí Noel để bàn', 'Set đồ lưu niệm mini trang trí bàn làm việc và góc học tập.', 150000.00, 80, 'placeholder.jpg', 6, 'noel', '2026-12-07 13:00:00'),
-(13, 'Quần kaki cơ bản sự kiện', 'Quần kaki trung tính, phối tốt với áo sự kiện.', 460000.00, 30, 'placeholder.jpg', 1, 'default', '2026-03-01 09:00:00'),
-(14, 'Túi đeo chéo lưu niệm', 'Túi đeo chéo đa năng, đựng vật dụng cá nhân gọn nhẹ.', 275000.00, 65, 'placeholder.jpg', 7, 'default', '2026-03-02 09:45:00');
 
 -- --------------------------------------------------------
 -- Bảng liên hệ
@@ -133,9 +118,6 @@ CREATE TABLE `contacts` (
   `created_at` datetime DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
-
-INSERT INTO `contacts` (`id`, `name`, `email`, `phone`, `subject`, `message`, `created_at`) VALUES
-(1, 'Nguyễn Thanh', 'nguyenthanh@example.com', '0909123456', 'Tư vấn combo Tết', 'Mình cần tư vấn combo quà tặng cho công ty khoảng 50 phần.', '2026-02-03 08:00:00');
 
 -- --------------------------------------------------------
 -- Bảng đơn hàng
@@ -155,9 +137,6 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
-INSERT INTO `orders` (`id`, `user_id`, `name`, `phone`, `address`, `payment_method`, `total`, `status`, `created_at`) VALUES
-(1, 1, 'Mai Anh', '0976795872', 'Việt Trì, Phú Thọ', 'cod', 700000.00, 'pending', '2026-02-02 09:16:53');
-
 -- --------------------------------------------------------
 -- Bảng chi tiết đơn hàng
 -- --------------------------------------------------------
@@ -175,8 +154,6 @@ CREATE TABLE `order_items` (
   CONSTRAINT `fk_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `quantity`, `price`) VALUES
-(1, 1, 1, 'Áo thun Tết Phúc Lộc', 2, 350000.00);
 
 -- --------------------------------------------------------
 -- Bảng tin nhắn hỗ trợ
@@ -193,9 +170,6 @@ CREATE TABLE `messages` (
   CONSTRAINT `fk_messages_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
-INSERT INTO `messages` (`id`, `user_id`, `message`, `is_admin`, `is_read`, `created_at`) VALUES
-(1, 1, 'Shop ơi, còn áo thun Tết size L không?', 0, 1, '2026-02-01 19:00:00'),
-(2, 1, 'Dạ còn ạ, bên em hỗ trợ giữ hàng trong ngày.', 1, 1, '2026-02-01 19:02:00');
 
 COMMIT;
 

@@ -440,7 +440,6 @@ function getActiveSaleEventSlug(): ?string {
 
     $cached = true;
 
-    // Uu tien theme dang duoc chon (UI/Auto) de dong bo giao dien va du lieu.
     $themeSlug = getActiveEventSlug();
     if ($themeSlug !== 'default') {
         $slug = $themeSlug;
