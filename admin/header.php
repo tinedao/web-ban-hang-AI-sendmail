@@ -3,7 +3,7 @@ require '../config/database.php';
 
 // Check Admin Auth
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: login.php");
+    header("Location: admin/login.php");
     exit;
 }
 
