@@ -90,54 +90,112 @@ if ($action === 'send') {
     ];
     $themeContext = $themeContexts[$activeTheme] ?? $themeContexts['default'];
 
-    $history = json_decode($_POST['history'] ?? '[]', true);
     $messages = [];
+    $chatbotClosing = 'Dạ vậy anh/chị còn cần gì thêm không ạ ?';
+
+    $wrapChatbotResponse = function(array $payload): array {
+        return [
+            'choices' => [[
+                'message' => [
+                    'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                ],
+            ]],
+        ];
+    };
+
+    $looksLikeProductLookup = function(string $text): bool {
+        $text = mb_strtolower(trim($text), 'UTF-8');
+        if ($text === '') {
+            return false;
+        }
+
+        return (bool)preg_match(
+            '/\b(tim|kiem|mua|xem|goi y|tu van|tư vấn|san pham|ao|áo|quan|quần|mu|mũ|non|nón|giay|giày|hoodie|phu kien|phụ kiện|qua tang|quà tặng|luu niem|lưu niệm)\b/ui',
+            $text
+        );
+    };
+
+    $getQualityNote = function(array $product): string {
+        $description = trim((string)($product['description'] ?? ''));
+        if ($description !== '') {
+            return 'Mô tả nổi bật: ' . $description;
+        }
+
+        return 'Hiện shop chưa có mô tả chi tiết thêm về chất liệu của mẫu này.';
+    };
+
+    $buildProductAdvicePayload = function(array $result) use ($chatbotClosing, $getQualityNote): array {
+        $products = is_array($result['products'] ?? null) ? array_slice($result['products'], 0, 3) : [];
+        $search = trim((string)($result['applied_filters']['search'] ?? ''));
+
+        if (empty($products)) {
+            return [
+                'reply' => "Dạ, bên em hiện không có mẫu đó.\n\n{$chatbotClosing}",
+                'url' => '',
+                'products' => [],
+            ];
+        }
+
+        usort($products, static fn(array $a, array $b): int => ((float)($a['price'] ?? 0)) <=> ((float)($b['price'] ?? 0)));
+
+        $cheapest = $products[0];
+        $expensive = $products[count($products) - 1];
+        $intro = $search !== ''
+            ? "Dạ, em đã chọn ra " . count($products) . " mẫu gần với \"{$search}\" ở ngay bên dưới."
+            : "Dạ, em đã chọn ra " . count($products) . " mẫu phù hợp ở ngay bên dưới.";
+
+        $priceAdvice = 'Mẫu giá mềm nhất là ' . trim((string)($cheapest['name'] ?? ''))
+            . ' (' . trim((string)($cheapest['price_formatted'] ?? '')) . ').';
+
+        if (count($products) > 1) {
+            $priceAdvice .= ' Mẫu giá cao hơn là ' . trim((string)($expensive['name'] ?? ''))
+                . ' (' . trim((string)($expensive['price_formatted'] ?? '')) . ').';
+        }
+
+        $qualityAdvice = $getQualityNote($expensive);
+
+        return [
+            'reply' => $intro . ' ' . $priceAdvice . ' ' . $qualityAdvice . "\n\n" . $chatbotClosing,
+            'url' => '',
+            'products' => $products,
+        ];
+    };
+
+    if ($looksLikeProductLookup($userMsg)) {
+        $productResult = getChatbotProductSuggestions([
+            'search' => $userMsg,
+            'limit' => 3,
+            'sort' => 'relevance',
+            'only_in_stock' => true,
+            'event_slug' => 'auto',
+            'match_all_keywords' => false,
+        ]);
+
+        ob_clean();
+        echo json_encode($wrapChatbotResponse($buildProductAdvicePayload($productResult)));
+        die();
+    }
 
     $appName = $_ENV['APP_NAME'] ?? 'Shop';
-    $systemPrompt = "Ban la nhan vien tu van ban hang tai {$appName} (shop do luu niem va thoi trang su kien).\n"
-        . "Tra loi ngan gon, than thien, tu nhien bang tieng Viet.\n"
-        . "Khong dung van phong may moc, khong noi dai.\n\n"
-        . "Boi canh su kien hien tai:\n"
-        . "- Su kien: {$themeContext['name']}\n"
-        . "- Uu tien tu van: {$themeContext['focus']}\n\n"
-        . "Nhiem vu:\n"
-        . "1) Neu khach tim san pham:\n"
-        . "- Rut tu khoa chinh tu cau hoi (bo qua cac tu: tim, mua, xem, shop, cho toi, giup toi).\n"
-        . "- Tra loi ngan + goi y nhanh theo su kien hien tai.\n"
-        . "- Tra ve URL category.php?search=TU_KHOA (tu khoa url-encode, ngan gon).\n\n"
-        . "2) Neu khach hoi chung:\n"
-        . "- Tra loi binh thuong, van dua goi y lien quan den su kien hien tai.\n"
-        . "- URL de rong neu khong can dieu huong.\n\n"
-        . "3) Khong tu van da quy hoac kim cuong, vi shop ban do luu niem/thoi trang su kien.\n\n"
-        . "Output bat buoc la JSON thuan (khong markdown):\n"
-        . "{\"reply\":\"...\",\"url\":\"...\"}";
+    $systemPrompt = "Bạn là trợ lý tư vấn bán hàng {$appName}. Chỉ trả lời Tiếng Việt, ngắn gọn thân thiện. Theo sự kiện {$themeContext['name']}. Không bịa. Không markdown. JSON: {\"reply\":\"...\",\"url\":\"\",\"products\":[]}";
 
     $messages[] = ['role' => 'system', 'content' => $systemPrompt];
 
-    if (is_array($history)) {
-        $recentHistory = array_slice($history, -6);
-        foreach ($recentHistory as $h) {
-            if (isset($h['role'], $h['content'])) {
-                $messages[] = ['role' => $h['role'], 'content' => $h['content']];
-            }
-        }
-    }
-
     $messages[] = ['role' => 'user', 'content' => $userMsg];
 
-    $callAiApi = function(array $msgs, ?array $toolsList = null, bool $forceJson = false) use ($apiKey, $apiUrl, $model): array {
+    $callAiApi = function(array $msgs, bool $forceJson = false) use ($apiKey, $apiUrl, $model): array {
         if (!function_exists('curl_init')) {
             return ['error' => ['message' => 'Hosting does not support CURL.']];
+        }
+
+        if ($apiKey === '' || $apiUrl === '' || $model === '') {
+            return ['error' => ['message' => 'Missing AI configuration.']];
         }
 
         $payload = [
             'model' => $model,
             'messages' => $msgs,
         ];
-        if ($toolsList) {
-            $payload['tools'] = $toolsList;
-            $payload['tool_choice'] = 'auto';
-        }
         if ($forceJson) {
             $payload['response_format'] = ['type' => 'json_object'];
         }
@@ -155,8 +213,8 @@ if ($action === 'send') {
         ]);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
 
         $res = curl_exec($ch);
         if (curl_errno($ch)) {
@@ -170,18 +228,13 @@ if ($action === 'send') {
         return is_array($decoded) ? $decoded : ['error' => ['message' => 'Invalid AI response']];
     };
 
-    $response = $callAiApi($messages, null, false);
-
-    $cleanAiJsonResponse = function(array $res): array {
+    $cleanAiJsonResponse = function(array $res) use ($wrapChatbotResponse): array {
         if (!is_array($res) || isset($res['error']) || !isset($res['choices'][0]['message']['content'])) {
-            $msg = isset($res['error']['message']) ? $res['error']['message'] : 'Loi ket noi den AI server.';
-            return [
-                'choices' => [[
-                    'message' => [
-                        'content' => json_encode(['reply' => "He thong dang ban ($msg). Vui long thu lai sau.", 'url' => ''])
-                    ]
-                ]]
-            ];
+            return $wrapChatbotResponse([
+                'reply' => 'Dạ, hệ thống tư vấn đang bận một chút. Anh/chị vui lòng thử lại sau giúp em nhé.',
+                'url' => '',
+                'products' => [],
+            ]);
         }
 
         $content = $res['choices'][0]['message']['content'];
@@ -198,6 +251,7 @@ if ($action === 'send') {
         return $res;
     };
 
+    $response = $callAiApi($messages, true);
     $response = $cleanAiJsonResponse($response);
     ob_clean();
     echo json_encode($response);

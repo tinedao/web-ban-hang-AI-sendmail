@@ -645,6 +645,277 @@ function getCatalogProducts(array $filters = []): array {
     ];
 }
 
+function chatbotExtractSearchTokens(string $search): array {
+    $normalized = mb_strtolower(trim($search), 'UTF-8');
+    if ($normalized === '') {
+        return [];
+    }
+
+    $normalized = preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $normalized);
+    $parts = preg_split('/\s+/u', (string)$normalized, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $stopWords = [
+        'tim', 'kiem', 'mua', 'xem', 'goi', 'y', 'tu', 'van', 'giup', 'toi',
+        'cho', 'em', 'anh', 'chi', 'shop', 'san', 'pham', 'loai', 'nao',
+        'co', 'khong', 'voi', 'nhe', 'nha', 'a', 'ạ', 'va', 'hay', 'muon',
+        'cần', 'can', 'them', 'gi', 'de', 'dung', 'phu', 'hop'
+    ];
+
+    $tokens = [];
+    foreach ($parts as $part) {
+        if (mb_strlen($part, 'UTF-8') < 2) {
+            continue;
+        }
+        if (in_array($part, $stopWords, true)) {
+            continue;
+        }
+        $tokens[] = $part;
+    }
+
+    return array_values(array_unique($tokens));
+}
+
+function resolveChatbotCategoryId(?string $categoryName): ?int {
+    global $conn;
+
+    $categoryName = trim((string)$categoryName);
+    if ($categoryName === '' || !hasTable('categories')) {
+        return null;
+    }
+
+    try {
+        $sql = "SELECT id
+                FROM categories
+                WHERE name LIKE :category_like
+                ORDER BY CASE
+                    WHEN LOWER(name) = LOWER(:category_exact) THEN 0
+                    ELSE 1
+                END, id ASC
+                LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([
+            ':category_like' => '%' . $categoryName . '%',
+            ':category_exact' => $categoryName,
+        ]);
+        $id = $stmt->fetchColumn();
+        return $id !== false ? (int)$id : null;
+    } catch (Throwable $e) {
+        if (isMissingTableError($e)) {
+            return null;
+        }
+        throw $e;
+    }
+}
+
+function getChatbotProductSuggestions(array $filters = []): array {
+    global $conn;
+
+    $defaultLimit = 3;
+    $limit = max(1, min(6, (int)($filters['limit'] ?? $defaultLimit)));
+
+    if (!hasTable('products')) {
+        return [
+            'products' => [],
+            'total' => 0,
+            'limit' => $limit,
+            'applied_filters' => [],
+        ];
+    }
+
+    $search = trim((string)($filters['search'] ?? $filters['query'] ?? ''));
+    $categoryId = isset($filters['category_id']) ? (int)$filters['category_id'] : null;
+    if ($categoryId !== null && $categoryId <= 0) {
+        $categoryId = null;
+    }
+    if ($categoryId === null && !empty($filters['category_name'])) {
+        $categoryId = resolveChatbotCategoryId((string)$filters['category_name']);
+    }
+
+    $minPrice = isset($filters['min_price']) && $filters['min_price'] !== ''
+        ? max(0, (float)$filters['min_price'])
+        : null;
+    $maxPrice = isset($filters['max_price']) && $filters['max_price'] !== ''
+        ? max(0, (float)$filters['max_price'])
+        : null;
+    if ($minPrice !== null && $maxPrice !== null && $minPrice > $maxPrice) {
+        [$minPrice, $maxPrice] = [$maxPrice, $minPrice];
+    }
+
+    $sort = (string)($filters['sort'] ?? 'relevance');
+    if (!in_array($sort, ['relevance', 'newest', 'price_asc', 'price_desc'], true)) {
+        $sort = 'relevance';
+    }
+
+    $onlyInStock = array_key_exists('only_in_stock', $filters) ? (bool)$filters['only_in_stock'] : true;
+    $matchAllKeywords = array_key_exists('match_all_keywords', $filters) ? (bool)$filters['match_all_keywords'] : true;
+    $eventSlugInput = trim((string)($filters['event_slug'] ?? 'auto'));
+
+    $hasCategories = hasTable('categories');
+    $hasEvents = hasTable('events');
+    $hasEventColumn = hasProductEventColumn();
+
+    $categorySelect = $hasCategories ? 'c.name AS category_name' : "NULL AS category_name";
+    $categoryJoin = $hasCategories ? 'LEFT JOIN categories c ON c.id = p.category_id' : '';
+    $categorySearchExpr = $hasCategories ? "COALESCE(c.name, '')" : "''";
+    $eventSelect = ($hasEvents && $hasEventColumn) ? 'e.name AS event_name' : "NULL AS event_name";
+    $eventJoin = ($hasEvents && $hasEventColumn) ? 'LEFT JOIN events e ON e.slug = p.event_slug' : '';
+    $eventSearchExpr = ($hasEvents && $hasEventColumn) ? "COALESCE(e.name, '')" : "''";
+
+    $whereParts = [];
+    $params = [];
+    $appliedEventSlug = '';
+
+    if ($hasEventColumn) {
+        if ($eventSlugInput === '' || $eventSlugInput === 'auto' || $eventSlugInput === 'current') {
+            $activeEventSlug = getActiveSaleEventSlug();
+            if (empty($activeEventSlug)) {
+                return [
+                    'products' => [],
+                    'total' => 0,
+                    'limit' => $limit,
+                    'applied_filters' => [
+                        'search' => $search,
+                        'category_id' => $categoryId,
+                        'event_slug' => null,
+                    ],
+                ];
+            }
+
+            $appliedEventSlug = $activeEventSlug;
+            $whereParts[] = 'p.event_slug = :event_slug';
+            $params[':event_slug'] = $activeEventSlug;
+        } elseif ($eventSlugInput !== 'all') {
+            $appliedEventSlug = $eventSlugInput;
+            $whereParts[] = 'p.event_slug = :event_slug';
+            $params[':event_slug'] = $eventSlugInput;
+        }
+    }
+
+    if ($categoryId !== null) {
+        $whereParts[] = 'p.category_id = :category_id';
+        $params[':category_id'] = $categoryId;
+    }
+
+    if ($onlyInStock) {
+        $whereParts[] = 'p.stock > 0';
+    }
+
+    if ($minPrice !== null) {
+        $whereParts[] = 'p.price >= :min_price';
+        $params[':min_price'] = $minPrice;
+    }
+
+    if ($maxPrice !== null) {
+        $whereParts[] = 'p.price <= :max_price';
+        $params[':max_price'] = $maxPrice;
+    }
+
+    $tokens = chatbotExtractSearchTokens($search);
+    if ($search !== '' && empty($tokens)) {
+        $tokens = [mb_strtolower($search, 'UTF-8')];
+    }
+
+    if (!empty($tokens)) {
+        $tokenGroups = [];
+        foreach ($tokens as $index => $token) {
+            $nameKey = ":search_name_kw_$index";
+            $descKey = ":search_desc_kw_$index";
+            $categoryKey = ":search_category_kw_$index";
+            $eventKey = ":search_event_kw_$index";
+            $tokenGroups[] = "(p.name LIKE $nameKey
+                OR COALESCE(p.description, '') LIKE $descKey
+                OR $categorySearchExpr LIKE $categoryKey
+                OR $eventSearchExpr LIKE $eventKey)";
+            $params[$nameKey] = '%' . $token . '%';
+            $params[$descKey] = '%' . $token . '%';
+            $params[$categoryKey] = '%' . $token . '%';
+            $params[$eventKey] = '%' . $token . '%';
+        }
+
+        $whereParts[] = $matchAllKeywords
+            ? '(' . implode(' AND ', $tokenGroups) . ')'
+            : '(' . implode(' OR ', $tokenGroups) . ')';
+    }
+
+    $whereSql = !empty($whereParts) ? ' WHERE ' . implode(' AND ', $whereParts) : '';
+    $orderBy = 'p.created_at DESC';
+
+    if ($sort === 'price_asc') {
+        $orderBy = 'p.price ASC, p.created_at DESC';
+    } elseif ($sort === 'price_desc') {
+        $orderBy = 'p.price DESC, p.created_at DESC';
+    } elseif ($sort === 'relevance' && $search !== '') {
+        $params[':search_exact'] = $search;
+        $params[':search_name_phrase'] = '%' . $search . '%';
+        $params[':search_desc_phrase'] = '%' . $search . '%';
+        $orderBy = "CASE
+            WHEN LOWER(p.name) = LOWER(:search_exact) THEN 0
+            WHEN p.name LIKE :search_name_phrase THEN 1
+            WHEN COALESCE(p.description, '') LIKE :search_desc_phrase THEN 2
+            ELSE 3
+        END, p.stock DESC, p.created_at DESC";
+    }
+
+    try {
+        $sql = "SELECT p.*, $categorySelect, $eventSelect
+                FROM products p
+                $categoryJoin
+                $eventJoin
+                $whereSql
+                ORDER BY $orderBy
+                LIMIT $limit";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        if (isMissingTableError($e)) {
+            $products = [];
+        } else {
+            throw $e;
+        }
+    }
+
+    $formattedProducts = [];
+    foreach ($products as $product) {
+        $description = trim((string)($product['description'] ?? ''));
+        $description = preg_replace('/\s+/u', ' ', $description ?? '');
+        if ($description !== '' && mb_strlen($description, 'UTF-8') > 140) {
+            $description = mb_substr($description, 0, 137, 'UTF-8') . '...';
+        }
+
+        $formattedProducts[] = [
+            'id' => (int)($product['id'] ?? 0),
+            'name' => (string)($product['name'] ?? ''),
+            'description' => $description,
+            'price' => (float)($product['price'] ?? 0),
+            'price_formatted' => formatVND($product['price'] ?? 0),
+            'stock' => (int)($product['stock'] ?? 0),
+            'image' => (string)($product['image'] ?? ''),
+            'category_id' => isset($product['category_id']) ? (int)$product['category_id'] : null,
+            'category_name' => (string)($product['category_name'] ?? ''),
+            'event_slug' => (string)($product['event_slug'] ?? ''),
+            'event_name' => (string)($product['event_name'] ?? ''),
+            'url' => 'product.php?id=' . (int)($product['id'] ?? 0),
+        ];
+    }
+
+    return [
+        'products' => $formattedProducts,
+        'total' => count($formattedProducts),
+        'limit' => $limit,
+        'applied_filters' => [
+            'search' => $search,
+            'category_id' => $categoryId,
+            'min_price' => $minPrice,
+            'max_price' => $maxPrice,
+            'sort' => $sort,
+            'only_in_stock' => $onlyInStock,
+            'match_all_keywords' => $matchAllKeywords,
+            'event_slug' => $appliedEventSlug !== '' ? $appliedEventSlug : ($eventSlugInput === 'all' ? 'all' : null),
+        ],
+        'search_url' => $search !== '' ? 'category.php?search=' . rawurlencode($search) : 'category.php',
+    ];
+}
+
 /**
  * Build a cart snapshot in one batched product query.
  */

@@ -944,30 +944,120 @@ footer strong {
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
+.chat-product-list {
+    width: min(100%, 270px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: flex-start;
+    margin-top: -6px;
+}
+
+.chat-product-card {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(197, 160, 89, 0.16);
+    border-radius: 16px;
+    box-shadow: 0 10px 26px rgba(17, 17, 17, 0.06);
+}
+
+.chat-product-thumb {
+    width: 62px;
+    height: 62px;
+    flex: 0 0 62px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f3f3f3;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.chat-product-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.chat-product-body {
+    min-width: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-product-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.chat-product-price {
+    font-size: 0.84rem;
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.chat-product-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    margin-top: auto;
+    color: #222;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.chat-product-link:hover {
+    color: #000;
+    transform: translateX(2px);
+}
+
 /* Typing Animation (Hiệu ứng đang nhập) */
 .typing-indicator {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     padding: 12px 16px;
-    background: #fff;
-    border: 1px solid #eee;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(197, 160, 89, 0.18);
     border-radius: 18px;
     border-bottom-left-radius: 4px;
     width: fit-content;
     margin-bottom: 10px;
     align-self: flex-start;
+    box-shadow: 0 10px 24px rgba(17, 17, 17, 0.06);
 }
 .typing-dot {
-    width: 6px; height: 6px;
-    background: #888; border-radius: 50%;
+    width: 7px; height: 7px;
+    background: var(--accent-color); border-radius: 50%;
     animation: typingBounce 1.4s infinite ease-in-out both;
 }
 .typing-dot:nth-child(1) { animation-delay: -0.32s; }
 .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-label {
+    margin-right: 8px;
+    color: #666;
+    font-size: 0.88rem;
+}
 @keyframes typingBounce {
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1); }
+}
+
+.chat-input-modern:disabled,
+.chat-btn-send:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
 }
 
 /* Input Chat Style Modern */
