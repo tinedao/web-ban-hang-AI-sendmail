@@ -1,0 +1,37 @@
+/* Noel: xanh - do */
+body.theme-noel {
+    background: #f5f7fa;
+}
+
+.theme-noel .navbar,
+.theme-noel footer {
+    background: #1b4332 !important;
+}
+
+.theme-noel .nav-link,
+.theme-noel .nav-icon,
+.theme-noel .navbar-brand {
+    color: #fff !important;
+}
+
+.theme-noel {
+    --accent-color: #a3cef1;
+    --shell-bg: #1b4332;
+    --shell-text: #ffffff;
+    --shell-muted: rgba(255, 255, 255, 0.78);
+}
+
+.theme-noel .btn-primary {
+    background: #9b2226;
+    border-color: #9b2226;
+}
+
+.theme-noel .event-badge {
+    background: #a3cef1;
+    color: #1b4332;
+}
+
+.theme-noel .event-hero {
+    border: 2px solid rgba(27, 67, 50, 0.35);
+    box-shadow: 0 10px 24px rgba(155, 34, 38, 0.2);
+}

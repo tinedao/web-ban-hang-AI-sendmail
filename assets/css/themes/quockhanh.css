@@ -1,0 +1,37 @@
+/* 2/9: do - vang */
+body.theme-quockhanh {
+    background: #f1f5f9;
+}
+
+.theme-quockhanh .navbar,
+.theme-quockhanh footer {
+    background: #1d3557 !important;
+}
+
+.theme-quockhanh .nav-link,
+.theme-quockhanh .nav-icon,
+.theme-quockhanh .navbar-brand {
+    color: #fff !important;
+}
+
+.theme-quockhanh {
+    --accent-color: #f8e16c;
+    --shell-bg: #1d3557;
+    --shell-text: #ffffff;
+    --shell-muted: rgba(255, 255, 255, 0.78);
+}
+
+.theme-quockhanh .btn-primary {
+    background: #9b111e;
+    border-color: #9b111e;
+}
+
+.theme-quockhanh .event-badge {
+    background: #f8e16c;
+    color: #1d3557;
+}
+
+.theme-quockhanh .event-hero {
+    border: 2px solid rgba(29, 53, 87, 0.35);
+    box-shadow: 0 10px 24px rgba(29, 53, 87, 0.2);
+}

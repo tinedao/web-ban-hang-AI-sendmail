@@ -1,0 +1,37 @@
+/* 30/4: do - xanh */
+body.theme-gpmnam {
+    background: #e9d8a6;
+}
+
+.theme-gpmnam .navbar,
+.theme-gpmnam footer {
+    background: #005f73 !important;
+}
+
+.theme-gpmnam .nav-link,
+.theme-gpmnam .nav-icon,
+.theme-gpmnam .navbar-brand {
+    color: #fff !important;
+}
+
+.theme-gpmnam {
+    --accent-color: #ee9b00;
+    --shell-bg: #005f73;
+    --shell-text: #ffffff;
+    --shell-muted: rgba(255, 255, 255, 0.78);
+}
+
+.theme-gpmnam .btn-primary {
+    background: #ca6702;
+    border-color: #ca6702;
+}
+
+.theme-gpmnam .event-badge {
+    background: #ee9b00;
+    color: #005f73;
+}
+
+.theme-gpmnam .event-hero {
+    border: 2px solid rgba(202, 103, 2, 0.35);
+    box-shadow: 0 10px 24px rgba(0, 95, 115, 0.2);
+}
