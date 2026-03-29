@@ -18,7 +18,7 @@ $action = $_REQUEST['action'] ?? '';
 
 if ($action === 'send') {
     if (!$userId && !$isAdmin) {
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn chưa đăng nhập.']);
         exit;
     }
 
@@ -33,15 +33,15 @@ if ($action === 'send') {
         if (insertData('messages', $data)) {
             echo json_encode(['status' => 'success']);
         } else {
-            echo json_encode(['status' => 'error', 'message' => 'DB Error']);
+            echo json_encode(['status' => 'error', 'message' => 'Không thể lưu tin nhắn vào hệ thống.']);
         }
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Empty message']);
+        echo json_encode(['status' => 'error', 'message' => 'Tin nhắn đang trống.']);
     }
 
 } elseif ($action === 'fetch') {
     if (!$userId) {
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn chưa đăng nhập.']);
         exit;
     }
 
@@ -68,30 +68,30 @@ if ($action === 'send') {
     $activeTheme = $THEME['slug'] ?? 'default';
     $themeContexts = [
         'tet' => [
-            'name' => 'Tet',
-            'focus' => 'do tong do-vang, qua tang, set du xuan, ao, mu, phu kien le hoi',
+            'name' => 'Tết',
+            'focus' => 'đồ tông đỏ-vàng, quà tặng, set du xuân, áo, mũ, phụ kiện lễ hội',
         ],
         'gpmnam' => [
             'name' => '30/4',
-            'focus' => 'do su kien, ao, mu, giay, phu kien cho hoat dong ngoai troi va du lich',
+            'focus' => 'đồ sự kiện, áo, mũ, giày, phụ kiện cho hoạt động ngoài trời và du lịch',
         ],
         'quockhanh' => [
             'name' => '2/9',
-            'focus' => 'trang phuc su kien, giay, phu kien, qua tang quoc khanh',
+            'focus' => 'trang phục sự kiện, giày, phụ kiện, quà tặng Quốc khánh',
         ],
         'noel' => [
             'name' => 'Noel',
-            'focus' => 'do mua le hoi cuoi nam, hoodie, ao am, phu kien giang sinh, qua tang',
+            'focus' => 'đồ mùa lễ hội cuối năm, hoodie, áo ấm, phụ kiện Giáng sinh, quà tặng',
         ],
         'default' => [
-            'name' => 'Thuong ngay',
-            'focus' => 'quan ao, mu, giay, vong co, phu kien, do luu niem theo nhu cau thuong ngay',
+            'name' => 'Thường ngày',
+            'focus' => 'quần áo, mũ, giày, vòng cổ, phụ kiện, đồ lưu niệm theo nhu cầu thường ngày',
         ],
     ];
     $themeContext = $themeContexts[$activeTheme] ?? $themeContexts['default'];
 
     $messages = [];
-    $chatbotClosing = 'Dạ vậy anh/chị còn cần gì thêm không ạ ?';
+    $chatbotClosing = 'Dạ vậy anh/chị còn cần gì thêm không ạ?';
 
     $wrapChatbotResponse = function(array $payload): array {
         return [
@@ -103,8 +103,203 @@ if ($action === 'send') {
         ];
     };
 
-    $looksLikeProductLookup = function(string $text): bool {
+    $normalizeIntentText = function(string $text): string {
         $text = mb_strtolower(trim($text), 'UTF-8');
+        if ($text === '') {
+            return '';
+        }
+
+        $text = strtr($text, [
+            'à' => 'a', 'á' => 'a', 'ả' => 'a', 'ã' => 'a', 'ạ' => 'a',
+            'ă' => 'a', 'ằ' => 'a', 'ắ' => 'a', 'ẳ' => 'a', 'ẵ' => 'a', 'ặ' => 'a',
+            'â' => 'a', 'ầ' => 'a', 'ấ' => 'a', 'ẩ' => 'a', 'ẫ' => 'a', 'ậ' => 'a',
+            'è' => 'e', 'é' => 'e', 'ẻ' => 'e', 'ẽ' => 'e', 'ẹ' => 'e',
+            'ê' => 'e', 'ề' => 'e', 'ế' => 'e', 'ể' => 'e', 'ễ' => 'e', 'ệ' => 'e',
+            'ì' => 'i', 'í' => 'i', 'ỉ' => 'i', 'ĩ' => 'i', 'ị' => 'i',
+            'ò' => 'o', 'ó' => 'o', 'ỏ' => 'o', 'õ' => 'o', 'ọ' => 'o',
+            'ô' => 'o', 'ồ' => 'o', 'ố' => 'o', 'ổ' => 'o', 'ỗ' => 'o', 'ộ' => 'o',
+            'ơ' => 'o', 'ờ' => 'o', 'ớ' => 'o', 'ở' => 'o', 'ỡ' => 'o', 'ợ' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'ủ' => 'u', 'ũ' => 'u', 'ụ' => 'u',
+            'ư' => 'u', 'ừ' => 'u', 'ứ' => 'u', 'ử' => 'u', 'ữ' => 'u', 'ự' => 'u',
+            'ỳ' => 'y', 'ý' => 'y', 'ỷ' => 'y', 'ỹ' => 'y', 'ỵ' => 'y',
+            'đ' => 'd',
+        ]);
+
+        if (function_exists('iconv')) {
+            $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text);
+            if (is_string($ascii) && $ascii !== '') {
+                $text = $ascii;
+            }
+        }
+
+        $text = preg_replace('/[^a-z0-9\s#]+/i', ' ', $text) ?? $text;
+        $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+
+        return trim($text);
+    };
+
+    $extractOrderIdFromText = function(string $text) use ($normalizeIntentText): ?int {
+        $text = $normalizeIntentText($text);
+        if ($text === '') {
+            return null;
+        }
+
+        if (preg_match('/\b(?:ma|madon|don|donhang|hoa\s*don|hoadon|invoice|order)\D*0*(\d{1,10})\b/ui', $text, $matches)) {
+            return max(1, (int)$matches[1]);
+        }
+
+        return null;
+    };
+
+    $looksLikeOrderLookup = function(string $text) use ($extractOrderIdFromText, $normalizeIntentText): bool {
+        $normalized = $normalizeIntentText($text);
+        if ($normalized === '') {
+            return false;
+        }
+
+        if ($extractOrderIdFromText($normalized) === null) {
+            return false;
+        }
+
+        return (bool)preg_match(
+            '/\b(?:ma|madon|don|donhang|hoa\s*don|hoadon|invoice|order|tra\s*cuu|kiem\s*tra)\b/ui',
+            $normalized
+        );
+    };
+
+    $getPaymentMethodLabel = function(?string $paymentMethod): string {
+        $paymentMethod = strtolower(trim((string)$paymentMethod));
+        $map = [
+            'cod' => 'Thanh toán khi nhận hàng',
+            'online' => 'Thanh toán online',
+            'bank' => 'Chuyển khoản ngân hàng',
+            'banking' => 'Chuyển khoản ngân hàng',
+            'bank_transfer' => 'Chuyển khoản ngân hàng',
+            'cash' => 'Tiền mặt',
+            'momo' => 'Ví MoMo',
+            'vnpay' => 'VNPay',
+            'paypal' => 'PayPal',
+            'card' => 'Thẻ ngân hàng',
+        ];
+
+        return $map[$paymentMethod] ?? strtoupper((string)$paymentMethod ?: 'COD');
+    };
+
+    $getOrderStatusMeta = function(?string $status): array {
+        $status = strtolower(trim((string)$status));
+        $map = [
+            'paid' => ['label' => 'Đã thanh toán', 'tone' => 'success'],
+            'pending' => ['label' => 'Chờ xử lý', 'tone' => 'warning'],
+            'shipped' => ['label' => 'Đang giao', 'tone' => 'info'],
+            'cancelled' => ['label' => 'Đã hủy', 'tone' => 'danger'],
+        ];
+
+        return $map[$status] ?? ['label' => ucfirst($status ?: 'Không xác định'), 'tone' => 'secondary'];
+    };
+
+    $buildInvoiceLookupPayload = function(int $orderId) use ($userId, $chatbotClosing, $getOrderStatusMeta, $getPaymentMethodLabel): array {
+        $orderCode = '#' . str_pad((string)$orderId, 6, '0', STR_PAD_LEFT);
+
+        if (!$userId) {
+            return [
+                'reply' => "Để tra cứu hóa đơn {$orderCode}, anh/chị vui lòng đăng nhập trước giúp em.\n\n{$chatbotClosing}",
+                'url' => 'login.php?msg=auth',
+                'products' => [],
+                'invoice' => null,
+            ];
+        }
+
+        $orders = getData('orders', [
+            'where' => ['id' => $orderId, 'user_id' => $userId],
+            'limit' => 1,
+        ]);
+
+        if (empty($orders)) {
+            return [
+                'reply' => "Em chưa tìm thấy hóa đơn {$orderCode} trong tài khoản của anh/chị.\n\nAnh/chị vui lòng kiểm tra lại mã đơn hàng giúp em nhé.",
+                'url' => '',
+                'products' => [],
+                'invoice' => null,
+            ];
+        }
+
+        $order = $orders[0];
+        $statusMeta = $getOrderStatusMeta($order['status'] ?? 'pending');
+        $items = getData('order_items', [
+            'where' => ['order_id' => $orderId],
+            'order_by' => 'id ASC',
+        ]);
+
+        $invoiceItems = [];
+        $totalQuantity = 0;
+        foreach ($items as $item) {
+            $qty = (int)($item['quantity'] ?? $item['qty'] ?? 1);
+            $price = (float)($item['price'] ?? 0);
+            $subtotal = $price * $qty;
+            $totalQuantity += $qty;
+            $invoiceItems[] = [
+                'name' => (string)($item['product_name'] ?? $item['name'] ?? 'Sản phẩm'),
+                'qty' => $qty,
+                'price_formatted' => formatVND($price),
+                'subtotal_formatted' => formatVND($subtotal),
+            ];
+        }
+
+        return [
+            'reply' => "Em đã tìm thấy hóa đơn {$orderCode}. Em gửi anh/chị bản tóm tắt nhỏ ngay bên dưới để theo dõi nhanh nhé.",
+            'url' => '',
+            'products' => [],
+            'invoice' => [
+                'order_id' => $orderId,
+                'order_code' => $orderCode,
+                'created_at_label' => !empty($order['created_at']) ? date('d/m/Y H:i', strtotime((string)$order['created_at'])) : date('d/m/Y H:i'),
+                'status_label' => $statusMeta['label'],
+                'status_tone' => $statusMeta['tone'],
+                'payment_method_label' => $getPaymentMethodLabel($order['payment_method'] ?? 'cod'),
+                'total_formatted' => formatVND($order['total'] ?? 0),
+                'customer_name' => trim((string)($order['name'] ?? $_SESSION['name'] ?? 'Khách hàng')),
+                'customer_phone' => trim((string)($order['phone'] ?? '')),
+                'customer_address' => trim((string)($order['address'] ?? '')),
+                'items' => array_slice($invoiceItems, 0, 4),
+                'item_count' => count($items),
+                'total_quantity' => $totalQuantity,
+                'detail_url' => 'order_detail.php?id=' . $orderId,
+            ],
+        ];
+    };
+
+    $isGreetingOnly = function(string $text) use ($normalizeIntentText): bool {
+        $normalized = $normalizeIntentText($text);
+        if ($normalized === '') {
+            return false;
+        }
+
+        $compact = preg_replace('/\s+/u', '', $normalized) ?? $normalized;
+
+        return (bool)preg_match(
+            '/^(?:xinchao|xinchaoshop|chao|chaoshop|hello|helloshop|hi|hishop|hey|heyshop|alo|aloshop)$/u',
+            $compact
+        );
+    };
+
+    $shouldUseProductTool = function(string $text) use ($normalizeIntentText, $isGreetingOnly): bool {
+        $normalized = $normalizeIntentText($text);
+        if ($normalized === '') {
+            return false;
+        }
+
+        if ($isGreetingOnly($normalized)) {
+            return false;
+        }
+
+        return (bool)preg_match(
+            '/\b(tim|kiem|mua|xem|goi y|tu van|san pham|ao|quan|mu|non|giay|hoodie|phu kien|qua tang|luu niem)\b/ui',
+            $normalized
+        );
+    };
+
+    $looksLikeProductLookup = function(string $text) use ($normalizeIntentText): bool {
+        $text = $normalizeIntentText($text);
         if ($text === '') {
             return false;
         }
@@ -161,7 +356,14 @@ if ($action === 'send') {
         ];
     };
 
-    if ($looksLikeProductLookup($userMsg)) {
+    $orderLookupId = $extractOrderIdFromText($userMsg);
+    if ($orderLookupId !== null && $looksLikeOrderLookup($userMsg)) {
+        ob_clean();
+        echo json_encode($wrapChatbotResponse($buildInvoiceLookupPayload($orderLookupId)));
+        die();
+    }
+
+    if ($shouldUseProductTool($userMsg)) {
         $productResult = getChatbotProductSuggestions([
             'search' => $userMsg,
             'limit' => 3,
@@ -176,8 +378,8 @@ if ($action === 'send') {
         die();
     }
 
-    $appName = $_ENV['APP_NAME'] ?? 'Shop';
-    $systemPrompt = "Bạn là trợ lý tư vấn bán hàng {$appName}. Chỉ trả lời Tiếng Việt, ngắn gọn thân thiện. Theo sự kiện {$themeContext['name']}. Không bịa. Không markdown. JSON: {\"reply\":\"...\",\"url\":\"\",\"products\":[]}";
+    $appName = $_ENV['APP_NAME'] ?? 'Cửa hàng';
+    $systemPrompt = "Bạn là trợ lý tư vấn bán hàng {$appName}. Chỉ trả lời tiếng Việt, ngắn gọn, thân thiện. Theo sự kiện {$themeContext['name']}. Không bịa. Không dùng markdown. JSON: {\"reply\":\"...\",\"url\":\"\",\"products\":[]}";
 
     $messages[] = ['role' => 'system', 'content' => $systemPrompt];
 
@@ -185,11 +387,11 @@ if ($action === 'send') {
 
     $callAiApi = function(array $msgs, bool $forceJson = false) use ($apiKey, $apiUrl, $model): array {
         if (!function_exists('curl_init')) {
-            return ['error' => ['message' => 'Hosting does not support CURL.']];
+            return ['error' => ['message' => 'Hosting hiện không hỗ trợ CURL.']];
         }
 
         if ($apiKey === '' || $apiUrl === '' || $model === '') {
-            return ['error' => ['message' => 'Missing AI configuration.']];
+            return ['error' => ['message' => 'Thiếu cấu hình AI.']];
         }
 
         $payload = [
@@ -208,24 +410,24 @@ if ($action === 'send') {
             'Authorization: Bearer ' . $apiKey,
             'Content-Type: application/json',
             'HTTP-Referer: ' . ($_ENV['BASE_URL'] ?? 'http://localhost'),
-            'X-Title: ' . ($_ENV['APP_NAME'] ?? 'Event Shop'),
-            'User-Agent: EventShop/1.0'
+            'X-Title: ' . ($_ENV['APP_NAME'] ?? 'Crowné'),
+            'User-Agent: CrowneShop/1.0'
         ]);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
 
         $res = curl_exec($ch);
         if (curl_errno($ch)) {
             $err = curl_error($ch);
             curl_close($ch);
-            return ['error' => ['message' => 'Server Connection Error: ' . $err]];
+            return ['error' => ['message' => 'Lỗi kết nối máy chủ: ' . $err]];
         }
         curl_close($ch);
 
         $decoded = json_decode((string)$res, true);
-        return is_array($decoded) ? $decoded : ['error' => ['message' => 'Invalid AI response']];
+        return is_array($decoded) ? $decoded : ['error' => ['message' => 'Phản hồi AI không hợp lệ.']];
     };
 
     $cleanAiJsonResponse = function(array $res) use ($wrapChatbotResponse): array {
@@ -259,7 +461,7 @@ if ($action === 'send') {
 
 } elseif ($action === 'admin_get_users') {
     if (!$isAdmin) {
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn không có quyền truy cập.']);
         exit;
     }
 
@@ -280,7 +482,7 @@ if ($action === 'send') {
 
 } elseif ($action === 'admin_get_conversation') {
     if (!$isAdmin) {
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn không có quyền truy cập.']);
         exit;
     }
 
@@ -303,7 +505,7 @@ if ($action === 'send') {
 
 } elseif ($action === 'admin_send') {
     if (!$isAdmin) {
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn không có quyền truy cập.']);
         exit;
     }
 

@@ -143,6 +143,211 @@ $isLoggedIn = isset($_SESSION['user_id']);
         border-color: var(--accent-color);
         transform: translateX(2px);
     }
+
+    #box-ai .chat-invoice-card {
+        width: min(100%, 296px);
+        align-self: flex-start;
+        padding: 14px;
+        margin-top: -4px;
+        background: linear-gradient(180deg, rgba(255, 252, 245, 0.98), rgba(255, 255, 255, 0.98));
+        border: 1px solid rgba(197, 160, 89, 0.3);
+        border-radius: 18px;
+        box-shadow: 0 12px 28px rgba(17, 17, 17, 0.08);
+        color: #1f1f1f;
+    }
+
+    #box-ai .chat-invoice-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    #box-ai .chat-invoice-title {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+    }
+
+    #box-ai .chat-invoice-code {
+        margin: 3px 0 0;
+        font-size: 0.78rem;
+        color: #7b7b7b;
+    }
+
+    #box-ai .chat-invoice-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #box-ai .chat-invoice-status.status-success {
+        background: rgba(25, 135, 84, 0.12);
+        color: #198754;
+    }
+
+    #box-ai .chat-invoice-status.status-warning {
+        background: rgba(255, 193, 7, 0.16);
+        color: #8a5a00;
+    }
+
+    #box-ai .chat-invoice-status.status-info {
+        background: rgba(13, 202, 240, 0.16);
+        color: #0a6c86;
+    }
+
+    #box-ai .chat-invoice-status.status-danger {
+        background: rgba(220, 53, 69, 0.12);
+        color: #b42318;
+    }
+
+    #box-ai .chat-invoice-status.status-secondary {
+        background: rgba(108, 117, 125, 0.14);
+        color: #5c6670;
+    }
+
+    #box-ai .chat-invoice-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    #box-ai .chat-invoice-meta-item {
+        padding: 8px 10px;
+        background: rgba(17, 17, 17, 0.04);
+        border-radius: 12px;
+    }
+
+    #box-ai .chat-invoice-meta-label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.7rem;
+        color: #7b7b7b;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    #box-ai .chat-invoice-meta-value {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    #box-ai .chat-invoice-customer {
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px dashed rgba(197, 160, 89, 0.32);
+        border-radius: 14px;
+        margin-bottom: 12px;
+    }
+
+    #box-ai .chat-invoice-customer strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.84rem;
+    }
+
+    #box-ai .chat-invoice-customer span {
+        display: block;
+        font-size: 0.76rem;
+        line-height: 1.45;
+        color: #5f6368;
+    }
+
+    #box-ai .chat-invoice-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    #box-ai .chat-invoice-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 10px;
+        background: rgba(17, 17, 17, 0.03);
+        border-radius: 12px;
+    }
+
+    #box-ai .chat-invoice-item-name {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    #box-ai .chat-invoice-item-qty {
+        margin-top: 3px;
+        font-size: 0.73rem;
+        color: #777;
+    }
+
+    #box-ai .chat-invoice-item-price {
+        flex: 0 0 auto;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        text-align: right;
+    }
+
+    #box-ai .chat-invoice-more {
+        font-size: 0.74rem;
+        color: #777;
+        margin: -2px 0 12px;
+    }
+
+    #box-ai .chat-invoice-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(17, 17, 17, 0.08);
+    }
+
+    #box-ai .chat-invoice-total-label {
+        display: block;
+        font-size: 0.72rem;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    #box-ai .chat-invoice-total-value {
+        display: block;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent-color);
+    }
+
+    #box-ai .chat-invoice-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 12px;
+        border-radius: 12px;
+        background: #111;
+        color: #fff !important;
+        text-decoration: none !important;
+        font-size: 0.78rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    #box-ai .chat-invoice-link:hover {
+        background: var(--accent-color);
+        color: #111 !important;
+    }
 </style>
 
 <script>
@@ -292,11 +497,146 @@ const ChatApp = {
         return `assets/images/${imageName !== '' ? imageName : 'placeholder.jpg'}`;
     },
 
-    addAiResponse: (text, products = []) => {
+    addInvoicePreview: (invoice) => {
+        const box = document.getElementById('msg-ai');
+        if (!box || !invoice || typeof invoice !== 'object') return;
+
+        const card = document.createElement('div');
+        card.className = 'chat-invoice-card';
+
+        const header = document.createElement('div');
+        header.className = 'chat-invoice-head';
+
+        const headerLeft = document.createElement('div');
+        const title = document.createElement('p');
+        title.className = 'chat-invoice-title';
+        title.textContent = 'Tom tat hoa don';
+
+        const code = document.createElement('p');
+        code.className = 'chat-invoice-code';
+        code.textContent = `${invoice?.order_code || ''} • ${invoice?.created_at_label || ''}`;
+
+        headerLeft.appendChild(title);
+        headerLeft.appendChild(code);
+
+        const status = document.createElement('span');
+        status.className = `chat-invoice-status status-${invoice?.status_tone || 'secondary'}`;
+        status.textContent = invoice?.status_label || 'Khong ro';
+
+        header.appendChild(headerLeft);
+        header.appendChild(status);
+        card.appendChild(header);
+
+        const meta = document.createElement('div');
+        meta.className = 'chat-invoice-meta';
+
+        const paymentMeta = document.createElement('div');
+        paymentMeta.className = 'chat-invoice-meta-item';
+        paymentMeta.innerHTML = `<span class="chat-invoice-meta-label">Thanh toan</span><span class="chat-invoice-meta-value"></span>`;
+        paymentMeta.querySelector('.chat-invoice-meta-value').textContent = invoice?.payment_method_label || '';
+
+        const quantityMeta = document.createElement('div');
+        quantityMeta.className = 'chat-invoice-meta-item';
+        quantityMeta.innerHTML = `<span class="chat-invoice-meta-label">So luong</span><span class="chat-invoice-meta-value"></span>`;
+        quantityMeta.querySelector('.chat-invoice-meta-value').textContent = `${invoice?.total_quantity || 0} san pham`;
+
+        meta.appendChild(paymentMeta);
+        meta.appendChild(quantityMeta);
+        card.appendChild(meta);
+
+        if (invoice?.customer_name || invoice?.customer_phone || invoice?.customer_address) {
+            const customer = document.createElement('div');
+            customer.className = 'chat-invoice-customer';
+
+            const name = document.createElement('strong');
+            name.textContent = invoice?.customer_name || 'Khach hang';
+            customer.appendChild(name);
+
+            if (invoice?.customer_phone) {
+                const phone = document.createElement('span');
+                phone.textContent = invoice.customer_phone;
+                customer.appendChild(phone);
+            }
+
+            if (invoice?.customer_address) {
+                const address = document.createElement('span');
+                address.textContent = invoice.customer_address;
+                customer.appendChild(address);
+            }
+
+            card.appendChild(customer);
+        }
+
+        if (Array.isArray(invoice?.items) && invoice.items.length > 0) {
+            const list = document.createElement('div');
+            list.className = 'chat-invoice-items';
+
+            invoice.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'chat-invoice-item';
+
+                const left = document.createElement('div');
+                const itemName = document.createElement('p');
+                itemName.className = 'chat-invoice-item-name';
+                itemName.textContent = item?.name || 'San pham';
+
+                const qty = document.createElement('div');
+                qty.className = 'chat-invoice-item-qty';
+                qty.textContent = `x${item?.qty || 1}`;
+
+                left.appendChild(itemName);
+                left.appendChild(qty);
+
+                const price = document.createElement('div');
+                price.className = 'chat-invoice-item-price';
+                price.textContent = item?.subtotal_formatted || item?.price_formatted || '';
+
+                row.appendChild(left);
+                row.appendChild(price);
+                list.appendChild(row);
+            });
+
+            card.appendChild(list);
+        }
+
+        if ((invoice?.item_count || 0) > (invoice?.items || []).length) {
+            const more = document.createElement('div');
+            more.className = 'chat-invoice-more';
+            more.textContent = `Con ${invoice.item_count - invoice.items.length} san pham nua trong don hang.`;
+            card.appendChild(more);
+        }
+
+        const footer = document.createElement('div');
+        footer.className = 'chat-invoice-foot';
+
+        const totalWrap = document.createElement('div');
+        totalWrap.innerHTML = `<span class="chat-invoice-total-label">Tong cong</span><span class="chat-invoice-total-value"></span>`;
+        totalWrap.querySelector('.chat-invoice-total-value').textContent = invoice?.total_formatted || '';
+
+        footer.appendChild(totalWrap);
+
+        if (invoice?.detail_url) {
+            const link = document.createElement('a');
+            link.className = 'chat-invoice-link';
+            link.href = invoice.detail_url;
+            link.innerHTML = 'Xem hoa don <i class="fa-solid fa-arrow-right"></i>';
+            footer.appendChild(link);
+        }
+
+        card.appendChild(footer);
+        box.appendChild(card);
+        box.scrollTop = box.scrollHeight;
+    },
+
+    addAiResponse: (text, products = [], invoice = null) => {
         const box = document.getElementById('msg-ai');
         if (!box) return;
 
         ChatApp.addMsg('ai', text || 'Xin lỗi, tôi chưa hiểu ý bạn.', 'bot');
+
+        if (invoice && typeof invoice === 'object') {
+            ChatApp.addInvoicePreview(invoice);
+        }
 
         if (!Array.isArray(products) || products.length === 0) {
             return;
@@ -421,10 +761,14 @@ const ChatApp = {
                     try {
                         aiObj = JSON.parse(aiContent);
                     } catch {
-                        aiObj = { reply: aiContent, url: '', products: [] };
+                        aiObj = { reply: aiContent, url: '', products: [], invoice: null };
                     }
 
-                    ChatApp.addAiResponse(aiObj.reply, Array.isArray(aiObj.products) ? aiObj.products : []);
+                    ChatApp.addAiResponse(
+                        aiObj.reply,
+                        Array.isArray(aiObj.products) ? aiObj.products : [],
+                        aiObj.invoice && typeof aiObj.invoice === 'object' ? aiObj.invoice : null
+                    );
 
                     if (aiObj.url && aiObj.url.trim() !== '') {
                         setTimeout(() => { ChatApp.navigateContent(aiObj.url); }, 1500);
