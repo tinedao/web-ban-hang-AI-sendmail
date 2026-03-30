@@ -216,7 +216,6 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `password_length`, `created_at`) VALUES
-(1, 'Mai Anh', 'mai.anh@example.com', '0976795872', '$2y$10$/DUtpqlWH.e6MbJXLBjqT.4F71enUz4s7c/HvDvGYJboo1qiHcxKK', 7, '2026-02-02 07:13:48'),
 (2, 'TIến', NULL, '0979499802', '$2y$10$rbMA2oq3eOO7aVYJbwpwWOsWngFRGPAbCwILaO.r6EtdotrkmnRcu', 8, '2026-03-23 04:03:57');
 
 --

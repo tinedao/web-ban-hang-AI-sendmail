@@ -458,6 +458,32 @@ const ChatApp = {
             });
     },
 
+    saveAiHistory: () => {
+        const box = document.getElementById('msg-ai');
+        if (box) {
+            // Tạo bản sao để không ảnh hưởng giao diện hiện tại
+            const clone = box.cloneNode(true);
+            // Loại bỏ hiệu ứng "đang gõ..." trước khi lưu
+            const indicators = clone.querySelectorAll('.typing-indicator');
+            indicators.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+            sessionStorage.setItem('ai_chat_history', clone.innerHTML);
+        }
+    },
+
+    loadAiHistory: () => {
+        const history = sessionStorage.getItem('ai_chat_history');
+        const box = document.getElementById('msg-ai');
+        if (history && box) {
+            box.innerHTML = history;
+            box.scrollTop = box.scrollHeight;
+        }
+        
+        const aiBox = document.getElementById('box-ai');
+        if (aiBox && sessionStorage.getItem('ai_chat_active') === '1') {
+            aiBox.classList.add('active');
+        }
+    },
+
     interval: null,
     aiThinkingEl: null,
 
@@ -479,6 +505,11 @@ const ChatApp = {
         } else {
             clearInterval(ChatApp.interval);
             ChatApp.interval = null;
+        }
+
+        // Lưu trạng thái đóng/mở của hộp thoại AI
+        if (type === 'ai') {
+            sessionStorage.setItem('ai_chat_active', target.classList.contains('active') ? '1' : '0');
         }
     },
 
@@ -510,7 +541,7 @@ const ChatApp = {
         const headerLeft = document.createElement('div');
         const title = document.createElement('p');
         title.className = 'chat-invoice-title';
-        title.textContent = 'Tom tat hoa don';
+        title.textContent = 'Tóm tắt hóa đơn';
 
         const code = document.createElement('p');
         code.className = 'chat-invoice-code';
@@ -521,7 +552,7 @@ const ChatApp = {
 
         const status = document.createElement('span');
         status.className = `chat-invoice-status status-${invoice?.status_tone || 'secondary'}`;
-        status.textContent = invoice?.status_label || 'Khong ro';
+        status.textContent = invoice?.status_label || 'Không rõ trạng thái';
 
         header.appendChild(headerLeft);
         header.appendChild(status);
@@ -532,13 +563,13 @@ const ChatApp = {
 
         const paymentMeta = document.createElement('div');
         paymentMeta.className = 'chat-invoice-meta-item';
-        paymentMeta.innerHTML = `<span class="chat-invoice-meta-label">Thanh toan</span><span class="chat-invoice-meta-value"></span>`;
+        paymentMeta.innerHTML = `<span class="chat-invoice-meta-label">Loại thanh toán</span><span class="chat-invoice-meta-value"></span>`;
         paymentMeta.querySelector('.chat-invoice-meta-value').textContent = invoice?.payment_method_label || '';
 
         const quantityMeta = document.createElement('div');
         quantityMeta.className = 'chat-invoice-meta-item';
-        quantityMeta.innerHTML = `<span class="chat-invoice-meta-label">So luong</span><span class="chat-invoice-meta-value"></span>`;
-        quantityMeta.querySelector('.chat-invoice-meta-value').textContent = `${invoice?.total_quantity || 0} san pham`;
+        quantityMeta.innerHTML = `<span class="chat-invoice-meta-label">Số lượng</span><span class="chat-invoice-meta-value"></span>`;
+        quantityMeta.querySelector('.chat-invoice-meta-value').textContent = `${invoice?.total_quantity || 0} sản phẩm`;
 
         meta.appendChild(paymentMeta);
         meta.appendChild(quantityMeta);
@@ -602,7 +633,7 @@ const ChatApp = {
         if ((invoice?.item_count || 0) > (invoice?.items || []).length) {
             const more = document.createElement('div');
             more.className = 'chat-invoice-more';
-            more.textContent = `Con ${invoice.item_count - invoice.items.length} san pham nua trong don hang.`;
+            more.textContent = `Con ${invoice.item_count - invoice.items.length} sản phẩm nữa trong đơn hàng.`;
             card.appendChild(more);
         }
 
@@ -610,7 +641,7 @@ const ChatApp = {
         footer.className = 'chat-invoice-foot';
 
         const totalWrap = document.createElement('div');
-        totalWrap.innerHTML = `<span class="chat-invoice-total-label">Tong cong</span><span class="chat-invoice-total-value"></span>`;
+        totalWrap.innerHTML = `<span class="chat-invoice-total-label">Tổng cộng</span><span class="chat-invoice-total-value"></span>`;
         totalWrap.querySelector('.chat-invoice-total-value').textContent = invoice?.total_formatted || '';
 
         footer.appendChild(totalWrap);
@@ -619,7 +650,7 @@ const ChatApp = {
             const link = document.createElement('a');
             link.className = 'chat-invoice-link';
             link.href = invoice.detail_url;
-            link.innerHTML = 'Xem hoa don <i class="fa-solid fa-arrow-right"></i>';
+            link.innerHTML = 'Xem hóa đơn <i class="fa-solid fa-arrow-right"></i>';
             footer.appendChild(link);
         }
 
@@ -730,6 +761,9 @@ const ChatApp = {
         if (type === 'ai' && ChatApp.aiThinkingEl) return;
 
         ChatApp.addMsg(type, msg, 'user');
+        if (type === 'ai') {
+            ChatApp.saveAiHistory();
+        }
         input.value = '';
 
         const formData = new FormData();
@@ -770,6 +804,9 @@ const ChatApp = {
                         aiObj.invoice && typeof aiObj.invoice === 'object' ? aiObj.invoice : null
                     );
 
+                    // Lưu lại ngay sau khi AI phản hồi thành công
+                    ChatApp.saveAiHistory();
+
                     if (aiObj.url && aiObj.url.trim() !== '') {
                         setTimeout(() => { ChatApp.navigateContent(aiObj.url); }, 1500);
                     }
@@ -782,6 +819,7 @@ const ChatApp = {
                     ChatApp.removeAiThinking();
                     ChatApp.setAiPending(form, false);
                     ChatApp.addMsg('ai', 'Xin lỗi, em đang gặp trục trặc một chút. Anh/chị vui lòng thử lại giúp em nhé.', 'bot');
+                    ChatApp.saveAiHistory();
                 }
                 console.error(err);
             })
@@ -822,8 +860,12 @@ const ChatApp = {
     resetAi: () => {
         ChatApp.removeAiThinking();
         document.getElementById('msg-ai').innerHTML = '<div class="chat-message bot">Xin chào! Tôi là AI tư vấn đồ lưu niệm sự kiện <?= $_ENV['APP_NAME'] ?>. Bạn cần tìm sản phẩm nào?</div>';
+        sessionStorage.removeItem('ai_chat_history'); // Xóa lịch sử trong session
     }
 };
+
+// Tự động load lại lịch sử và trạng thái mở khi chuyển trang
+document.addEventListener('DOMContentLoaded', ChatApp.loadAiHistory);
 
 window.addEventListener('popstate', function() {
     if (ChatApp.isCategoryUrl(window.location.href)) {
