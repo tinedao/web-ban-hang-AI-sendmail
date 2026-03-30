@@ -1,414 +1,176 @@
 # web-ban-hang-AI-sendmail
 
-Website ban do luu niem va thoi trang theo su kien trong nam, xay dung bang PHP thuan + MySQL, co tich hop AI chatbot, chat ho tro khach hang, gui email hoa don va khu vuc quan tri.
+Website bán đồ lưu niệm và thời trang theo sự kiện trong năm, xây dựng bằng PHP thuần + MySQL, có tích hợp AI chatbot, chat hỗ trợ khách hàng, gửi email hóa đơn và khu vực quản trị.
 
-## Tong quan
+## Tổng quan
 
-Du an hien tai duoc to chuc theo mo hinh PHP truyen thong:
+Dự án hiện tại được tổ chức theo mô hình PHP truyền thống:
 
-- Frontend cho khach hang: trang chu, danh muc, chi tiet san pham, gio hang, thanh toan, tai khoan, lich su don hang.
-- AI chatbot: goi y san pham theo noi dung nguoi dung nhap, uu tien san pham dung su kien dang kich hoat.
-- Chat ho tro: khach hang nhan tin voi admin theo thoi gian thuc qua bang `messages`.
-- Gui email hoa don: sau khi dat hang, he thong tao noi dung hoa don HTML va gui qua SMTP.
-- Admin dashboard: quan ly san pham, danh muc, don hang va chat voi khach.
-- Theme theo mua/su kien: `Tet`, `30/4`, `2/9`, `Noel`, `default`.
+- **Frontend cho khách hàng:** Trang chủ, danh mục, chi tiết sản phẩm, giỏ hàng, thanh toán, tài khoản cá nhân, lịch sử đơn hàng.
+- **AI chatbot:** Gợi ý sản phẩm dựa theo yêu cầu người dùng nhập, ưu tiên tìm kiếm sản phẩm thuộc các sự kiện đang kích hoạt.
+- **Chat hỗ trợ:** Khách hàng có thể nhắn tin trực tiếp với admin theo thời gian thực (lưu qua bảng `messages`).
+- **Gửi email hóa đơn:** Tự động render hóa đơn HTML và gửi email xác nhận qua SMTP sau khi đặt hàng thành công.
+- **Admin dashboard:** Quản lý sản phẩm, danh mục, theo dõi đơn hàng và cửa sổ chat với khách hàng.
+- **Theme theo mùa/sự kiện:** Giao diện thay đổi linh hoạt theo `Tet`, `30/4`, `2/9`, `Noel`, `default`.
 
-## Cong nghe dang dung
+## Công nghệ sử dụng
 
-- PHP
+- PHP 8.x
 - MySQL / MariaDB
 - PDO
 - Bootstrap 5
 - Font Awesome
-- `vlucas/phpdotenv`
-- `phpmailer/phpmailer`
-- OpenRouter API cho AI chat
+- `vlucas/phpdotenv` (Quản lý biến môi trường)
+- `phpmailer/phpmailer` (Gửi Email)
+- OpenRouter API (Tích hợp AI)
 
-## Tinh nang chinh
+## Tính năng chính
 
-### 1. Frontend ban hang
+### 1. Frontend bán hàng
+- Hiển thị sản phẩm động theo sự kiện đang active.
+- Lọc sản phẩm theo danh mục, tìm kiếm, sắp xếp và phân trang bằng AJAX.
+- Chức năng xem chi tiết sản phẩm và thao tác "Mua ngay".
+- Giỏ hàng (Cart) lưu trữ an toàn trong Session.
+- Đặt hàng theo 2 phương thức:
+  - Thanh toán khi nhận hàng (COD).
+  - Thanh toán online thông qua mã QR tạo động.
+- Giao diện lịch sử đơn hàng chi tiết và hóa đơn trực quan.
 
-- Hien thi san pham theo su kien dang active.
-- Loc theo danh muc, tim kiem, sap xep, phan trang.
-- Xem chi tiet san pham va mua ngay.
-- Gio hang luu trong session.
-- Dat hang theo 2 cach:
-- Thanh toan khi nhan hang.
-- Thanh toan online bang QR tao dong.
-- Xem trang xac nhan don hang va chi tiet hoa don.
-- Quan ly tai khoan ca nhan, doi mat khau, xem lich su don hang.
+### 2. AI Chatbot và Chat hỗ trợ
+- Tích hợp AI chat widget ở footer trang web.
+- AI có khả năng:
+  - Nhận diện ý định mua sắm của khách.
+  - Lọc sản phẩm theo từ khóa tự nhiên.
+  - Ưu tiên hiển thị các sản phẩm còn hàng.
+  - Trả lời gợi ý kèm theo link trực tiếp đến sản phẩm.
+- Tính năng Chat Support sử dụng bảng `messages`, cho phép Admin có không gian riêng để theo dõi và phản hồi khách hàng.
 
-### 2. AI chatbot va chat ho tro
+### 3. Hệ thống quản trị (Admin)
+- Xác thực bảo mật qua biến môi trường (`.env`).
+- Dashboard tổng quan, thống kê lượng sản phẩm và đơn hàng.
+- CRUD Danh mục & Sản phẩm, hỗ trợ upload ảnh và gắn thẻ sự kiện (event).
+- Quản lý và thay đổi trạng thái đơn hàng.
+- Màn hình chat tập trung để tư vấn người dùng.
 
-- AI chat widget xuat hien o footer.
-- AI co the:
-- nhan dien y dinh tim san pham,
-- loc san pham theo tu khoa,
-- uu tien san pham con hang,
-- tra ve goi y + link san pham.
-- Chat support dung bang `messages`, admin co man hinh doc va phan hoi.
+### 4. Theme và Sự kiện
+- Cơ chế Theme tự động đổi theo quý/tháng:
+  - Tháng 1-3: Tết
+  - Tháng 4-6: 30/4
+  - Tháng 7-9: 2/9
+  - Tháng 10-12: Noel
+- Hỗ trợ ép kiểu theme tạm thời qua Query String: `?theme=...` (Lưu Session).
 
-### 3. He thong admin
-
-- Dang nhap admin bang bien moi truong.
-- Dashboard thong ke tong san pham va tong don hang.
-- CRUD danh muc.
-- CRUD san pham, upload anh, gan theo event.
-- Quan ly trang thai don hang.
-- Cua so chat voi khach hang.
-
-### 4. Theme va su kien
-
-- Theme auto theo thang:
-- thang 1-3: Tet
-- thang 4-6: 30/4
-- thang 7-9: 2/9
-- thang 10-12: Noel
-- Co the override bang query `?theme=...` va luu vao session.
-- Neu co bang `events`, he thong co the lay su kien dang active tu database.
-
-## Cau truc thu muc
+## Cấu trúc thư mục
 
 ```text
 .
-|-- admin/                 # Khu vuc quan tri
-|-- api/                   # API AJAX cho cart, filter, chat
+|-- admin/                 # Giao diện và logic khu vực quản trị
+|-- api/                   # Các file API AJAX xử lý cart, filter, chat
 |-- assets/
-|   |-- css/               # CSS chung + CSS admin + CSS theme
-|   |-- images/            # Anh san pham, logo, founder
-|   `-- img/events/        # Hero image theo su kien
+|   |-- css/               # CSS tổng thể, CSS admin và CSS cho theme
+|   |-- images/            # Ảnh upload của sản phẩm, logo
+|   `-- img/events/        # Ảnh Hero Banner phân theo từng sự kiện
 |-- config/
-|   `-- database.php       # Ket noi DB + helper core
-|-- includes/              # Header, footer, navbar, theme, invoice, chat widget
-|-- vendor/                # Composer packages
-|-- index.php
-|-- category.php
-|-- product.php
-|-- cart.php
-|-- checkout.php
-|-- order_success.php
-|-- order_detail.php
-|-- profile.php
-|-- login.php
-|-- register.php
-|-- contact.php
-|-- about.php
-|-- sendmail.php
-`-- .env
+|   `-- database.php       # Khởi tạo kết nối DB và khai báo các helpers
+|-- includes/              # Các components: Header, footer, navbar, theme, chat widget...
+|-- vendor/                # Thư mục sinh ra khi cài Composer
+|-- index.php              # Trang chủ hệ thống
+|-- ...                    # Các file giao diện Frontend khác
+|-- sendmail.php           # Logic thiết lập và gửi Email bằng PHPMailer
+`-- .env                   # Cấu hình biến môi trường (Database, API Keys...)
 ```
 
-## Cac file quan trong
+## Hướng dẫn cài đặt (Setup)
 
-- `config/database.php`
-- Load `.env`, tao ket noi PDO, cung cap helper CRUD, auth, cart, event filter, chatbot product suggestion.
-- `includes/theme.php`
-- Quan ly giao dien theo su kien va logic auto theme.
-- `includes/chat_widget.php`
-- Widget chat AI + chat support.
-- `api/process.php`
-- Xu ly gui/lay tin nhan support va goi OpenRouter cho AI.
-- `sendmail.php`
-- Gui email hoa don bang PHPMailer.
-- `includes/invoice_template.php`
-- Render hoa don HTML cho web va email.
-- `admin/*.php`
-- Khu vuc quan tri.
+Để chạy dự án local thành công, vui lòng thực hiện tuần tự các bước sau:
 
-## Danh sach trang frontend
-
-- `index.php`: trang chu theo theme.
-- `category.php`: danh sach san pham + bo loc + AJAX pagination.
-- `product.php`: chi tiet san pham.
-- `cart.php`: gio hang.
-- `checkout.php`: dat hang, chon phuong thuc thanh toan, tao QR.
-- `order_success.php`: xac nhan dat hang thanh cong.
-- `order_detail.php`: xem hoa don chi tiet.
-- `profile.php`: thong tin tai khoan, doi mat khau, lich su don hang.
-- `login.php`: dang nhap khach hang.
-- `register.php`: dang ky khach hang.
-- `about.php`: gioi thieu thuong hieu.
-- `contact.php`: trang lien he.
-- `404.php`: trang loi 404.
-
-## Danh sach trang admin
-
-- `admin/login.php`: dang nhap admin.
-- `admin/index.php`: dashboard.
-- `admin/products.php`: quan ly san pham.
-- `admin/categories.php`: quan ly danh muc.
-- `admin/orders.php`: quan ly don hang.
-- `admin/chat.php`: chat voi khach hang.
-
-## Danh sach API/AJAX
-
-- `api/cart.php`
-- Them, cap nhat, xoa san pham trong gio hang.
-- `api/filter_products.php`
-- Render lai grid san pham va pagination theo filter.
-- `api/process.php`
-- Gui tin nhan support.
-- Lay lich su chat cua user.
-- Admin lay danh sach user va hoi thoai.
-- AI chat qua OpenRouter.
-
-## Cac bang du lieu du kien
-
-Khong thay file dump SQL trong workspace hien tai, nhung tu code co the suy ra du an can toi thieu cac bang sau:
-
-### `users`
-
-- `id`
-- `name`
-- `phone`
-- `email`
-- `password`
-- `password_length`
-- `created_at`
-
-### `categories`
-
-- `id`
-- `name`
-
-### `products`
-
-- `id`
-- `name`
-- `price`
-- `stock`
-- `category_id`
-- `description`
-- `image`
-- `created_at`
-- `event_slug` (neu dung he thong su kien)
-
-### `orders`
-
-- `id`
-- `user_id`
-- `name`
-- `phone`
-- `address`
-- `payment_method`
-- `total`
-- `status`
-- `created_at`
-
-### `order_items`
-
-- `id`
-- `order_id`
-- `product_id`
-- `product_name`
-- `price`
-- `quantity`
-
-### `messages`
-
-- `id`
-- `user_id`
-- `message`
-- `is_admin`
-- `created_at`
-
-### `events` (tuy chon nhung duoc ho tro trong code)
-
-- `id`
-- `slug`
-- `name`
-- `start_date`
-- `end_date`
-- `priority`
-- `is_enabled`
-
-## Cai dat va chay local
-
-### 1. Yeu cau
-
-- PHP 8.x khuyen nghi
+### 1. Yêu cầu hệ thống
+- PHP 8.x (Khuyến nghị)
 - MySQL / MariaDB
-- Composer
-- Web server local nhu XAMPP, Laragon, Apache, Nginx
+- Composer (Dùng để tải thư viện)
+- Web Server ảo như XAMPP, Laragon, WAMP...
 
-### 2. Cai package
-
+### 2. Cài đặt thư viện (Composer)
+Mở Terminal (hoặc Command Prompt), di chuyển vào thư mục gốc của dự án và chạy lệnh sau để tải về `phpdotenv` và `phpmailer`:
 ```bash
 composer install
 ```
+*(Nếu chạy thành công, thư mục `vendor` sẽ xuất hiện).*
 
-### 3. Tao CSDL
+### 3. Khởi tạo Cơ sở dữ liệu (Import DB)
+1. Mở phpMyAdmin (thường là `http://localhost/phpmyadmin`) hoặc công cụ quản lý MySQL của bạn.
+2. Tạo một Database mới, ví dụ: `bandosukien` (nên chọn Collation là `utf8mb4_unicode_ci`).
+3. Tìm file CSDL mẫu (`.sql`) của dự án (ví dụ `database.sql` nếu có) và **Import** vào database vừa tạo.
+   *Hệ thống cần tối thiểu các bảng: `users`, `categories`, `products`, `orders`, `order_items`, `messages` và `events`.*
 
-- Tao database, mac dinh theo `.env` hien tai la `bandosukien`.
-- Tao cac bang theo cau truc phan tren.
-- Nap du lieu mau cho `categories`, `products`, `users`, `events` neu can.
-
-### 4. Cau hinh `.env`
-
-Tao file `.env` o root project.
-
-README nay co dua lai noi dung `.env` hien tai cua du an, nhung da che cac gia tri nhay cam de tranh lo secret khi public repo.
+### 4. Thiết lập biến môi trường (.env)
+Tạo một file mới tinh tên là `.env` (lưu ý có dấu chấm ở đầu) đặt ngang hàng với thư mục `config`. Sao chép nội dung sau vào file `.env` và tùy chỉnh lại cho đúng thông tin máy bạn:
 
 ```dotenv
-# Database Configuration Host
-# DB_HOST="sql204.infinityfree.com"
-# DB_NAME="if0_41419290_crowne"
-# DB_USER="if0_41419290"
-# DB_PASS="***REDACTED***"
-
 # Database Configuration Local
 DB_HOST="localhost"
 DB_NAME="bandosukien"
 DB_USER="root"
-DB_PASS="***REDACTED***"
+DB_PASS="" # Nhập mật khẩu MySQL của bạn, nếu dùng XAMPP thường để trống
 
 # Application Settings
-APP_NAME="Crowne"
-BASE_URL="https://crowne.kesug.com/"
+APP_NAME="Crowné"
+BASE_URL="http://localhost/web-ban-hang-AI-sendmail/"
 
 # Admin login
-# Luu y: code admin dang ho tro ca cap key moi va key cu:
-# ADMIN_USERNAME / ADMIN_PASSWORD
-# hoac Ad_username / Ad_password
+# Sử dụng tài khoản này để đăng nhập vào thư mục /admin/login.php
 Ad_username="admin"
-Ad_password="***REDACTED***"
+Ad_password="mat_khau_admin_cua_ban"
 
-# AI config
-OPENROUTER_API_KEY="***REDACTED***"
+# AI config (OpenRouter)
+OPENROUTER_API_KEY="sk-or-v1-YOUR-KEY-HERE"
 OPENROUTER_API_URL="https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL="nvidia/nemotron-3-super-120b-a12b:free"
 
-# Email config
-EMAIL_ADMIN="tine.dao19@gmail.com"
+# Email config (Dùng cho SMTP)
+EMAIL_ADMIN="email_cua_ban@gmail.com"
+SMTP_PASSWORD="mat_khau_ung_dung_gmail_cua_ban"
 PHONE_ADMIN="0979499802"
 ADDRESS_ADMIN="Dai hoc Hung Vuong, Phu Tho"
 ```
 
-### 5. Chay du an
+### 5. Chạy ứng dụng
+Đưa thư mục mã nguồn vào thư mục chứa web của server:
+- **XAMPP:** `C:\xampp\htdocs\web-ban-hang-AI-sendmail`
+- **Laragon:** `C:\laragon\www\web-ban-hang-AI-sendmail`
 
-Dat project vao web root, vi du:
+Cuối cùng, mở trình duyệt web và truy cập vào đường dẫn:
+`http://localhost/web-ban-hang-AI-sendmail/`
 
-- XAMPP: `htdocs/web-ban-hang-AI-sendmail`
-- Laragon: `www/web-ban-hang-AI-sendmail`
+---
 
-Sau do truy cap:
+## Tài khoản đăng nhập mẫu
 
-```text
-http://localhost/web-ban-hang-AI-sendmail/
-```
+**Tài khoản Khách hàng:**
+- Khách có thể trực tiếp đăng ký tài khoản tại màn hình `register.php`.
+- Đăng nhập bằng số điện thoại + mật khẩu.
 
-Neu dung virtual host thi truy cap theo domain local cua ban.
+**Tài khoản Admin:**
+- Truy cập trang: `http://localhost/web-ban-hang-AI-sendmail/admin/login.php`
+- Điền thông tin đã cài đặt trong biến `Ad_username` và `Ad_password` ở file `.env`.
 
-## Tai khoan dang nhap
+## Luồng đặt hàng cơ bản
+1. Khách hàng đăng ký / đăng nhập.
+2. Duyệt sản phẩm hiển thị theo sự kiện đang active, thêm vào giỏ hàng hoặc bấm "Mua ngay".
+3. Chuyển sang giao diện thanh toán `checkout.php`.
+4. Khai báo thông tin nhận hàng, lựa chọn phương thức (COD hoặc Thanh toán Online QR).
+5. Hệ thống khởi tạo đơn hàng và các `order_items`.
+6. Tự động gửi Email hóa đơn nếu cấu hình SMTP chính xác.
+7. Chuyển hướng người dùng sang trang `order_success.php`.
+8. Khách hàng có thể theo dõi lại đơn trong `profile.php?tab=orders` hoặc in hóa đơn tại `order_detail.php`.
 
-### Khach hang
+## Ghi chú Kỹ thuật quan trọng
+- File `config/database.php` đóng vai trò trung tâm, quản lý khởi tạo PDO, helper CRUD, và auth.
+- Hàm `getCatalogProducts()` là core helper để render danh sách sản phẩm và phân trang.
+- Giỏ hàng được lưu trữ dưới dạng mảng trong `$_SESSION['cart']`.
 
-- Dang ky truc tiep tai `register.php`
-- Dang nhap bang so dien thoai + mat khau
-
-### Admin
-
-- Dang nhap tai `admin/login.php`
-- Tai khoan lay tu `.env`
-- Code hien dang ho tro:
-- `ADMIN_USERNAME`, `ADMIN_PASSWORD`
-- hoac `Ad_username`, `Ad_password`
-
-## Luong dat hang
-
-1. Khach dang ky / dang nhap.
-2. Chon san pham trong su kien dang active.
-3. Them vao gio hang hoac mua ngay.
-4. Sang `checkout.php`.
-5. Dien thong tin giao hang.
-6. Chon `cod` hoac `online`.
-7. He thong tao don hang + `order_items`.
-8. Gui email hoa don neu co email.
-9. Chuyen huong sang `order_success.php`.
-10. Xem lai trong `profile.php?tab=orders` hoac `order_detail.php`.
-
-## Ghi chu ky thuat quan trong
-
-- `config/database.php` co request-level cache cho kiem tra ton tai bang.
-- San pham co the bi loc theo `event_slug` neu schema co cot nay.
-- `getCatalogProducts()` la helper trung tam cho listing va pagination.
-- `getChatbotProductSuggestions()` la helper lay san pham de AI tra loi.
-- Gio hang luu trong `$_SESSION['cart']`.
-- `includes/header.php` va `includes/footer.php` duoc dung chung cho frontend.
-
-## Cac van de / rui ro quan sat duoc khi quet code
-
-### 1. Lo secret trong cau hinh
-
-- File `.env` hien dang chua gia tri thuc cho:
-- DB password
-- OpenRouter API key
-- thong tin email admin
-- Tuyet doi khong nen public nguyen van file `.env`.
-
-### 2. Mat khau SMTP dang hard-code
-
-- `sendmail.php` dang chua mat khau SMTP hard-code trong code.
-- Nen dua bien nay vao `.env`, vi du `SMTP_PASSWORD`.
-
-### 3. Ten bien moi truong admin chua dong nhat
-
-- `.env` hien dang dung `Ad_username`, `Ad_password`.
-- `admin/login.php` da ho tro them `ADMIN_USERNAME`, `ADMIN_PASSWORD`.
-- Nen chuan hoa ve 1 chuan duy nhat.
-
-### 4. `BASE_URL` trong `.env` goc dang bi sai format
-
-- File `.env` dang de `BASE_URL=http:https://crowne.kesug.com/`
-- Trong README nay da viet lai theo y dinh hop ly la `https://crowne.kesug.com/`
-- Nen sua file `.env` that de tranh loi header / referer khi goi AI API.
-
-### 5. Van de encoding
-
-- Nhieu file dang co dau hieu encoding loi khi doc bang terminal.
-- Nen chuan hoa toan bo file sang UTF-8 khong BOM.
-
-### 6. Chua thay file SQL dump trong workspace
-
-- Hien khong thay file `.sql` nao trong root project.
-- Neu muon repo de setup nhanh, nen bo sung:
-- `database.sql` hoac `schema.sql`
-- va co them du lieu mau.
-
-## Goi y cai thien tiep
-
-- Tao file `.env.example`.
-- Chuyen SMTP password vao `.env`.
-- Bo sung file dump CSDL.
-- Viet migration / seeder thay cho import tay.
-- Chuan hoa toan bo giao dien sang tieng Viet co dau.
-- Them validation server-side chat che hon cho checkout va upload.
-- Them CSRF protection cho form admin / user.
-
-## Composer packages
-
-```json
-{
-  "require": {
-    "vlucas/phpdotenv": "^5.6",
-    "phpmailer/phpmailer": "^7.0"
-  }
-}
-```
-
-## Trang thai hien tai cua README
-
-README nay duoc viet dua tren viec quet thuc te cac file sau:
-
-- `config/database.php`
-- `includes/theme.php`
-- `includes/chat_widget.php`
-- `includes/invoice_template.php`
-- `sendmail.php`
-- `api/cart.php`
-- `api/filter_products.php`
-- `api/process.php`
-- cac trang frontend
-- cac trang admin
-- file `.env`
-
-No phan anh trang thai codebase hien tai, khong phai tai lieu ly tuong hoa.
+## Các vấn đề cần lưu ý và Cải thiện
+1. **Lộ Secret Config:** Nếu đẩy dự án lên Github công khai, tuyệt đối **KHÔNG** đưa file `.env` lên mạng. Cần đưa vào file `.gitignore`.
+2. **Hard-code SMTP Mật khẩu:** File `sendmail.php` hiện đang ghi trực tiếp mật khẩu email (`klnupvgegggzwmdr`) vào code. Hãy sử dụng lệnh gọi qua `$_ENV['SMTP_PASSWORD']` như gợi ý phía trên.
+3. **Đồng nhất biến môi trường Admin:** File `.env` đang dùng `Ad_username` và code lại support `ADMIN_USERNAME`, nên đồng nhất lại thành 1 định dạng chuẩn.
+4. **Thiếu file SQL Backup:** Dự án nên có 1 file dump `.sql` chính thức đi kèm để người dùng sau có thể clone và import dễ dàng hơn.
