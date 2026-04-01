@@ -470,6 +470,39 @@ const ChatApp = {
         }
     },
 
+    saveAiMemory: (payload = {}) => {
+        const memory = {
+            reply: typeof payload.reply === 'string' ? payload.reply.trim() : '',
+            url: typeof payload.url === 'string' ? payload.url.trim() : '',
+            products: Array.isArray(payload.products)
+                ? payload.products.slice(0, 6).map((product) => ({
+                    name: product?.name || '',
+                    price_formatted: product?.price_formatted || '',
+                    category_name: product?.category_name || '',
+                    url: product?.url || ''
+                }))
+                : [],
+            saved_at: Date.now()
+        };
+
+        if (!memory.reply && memory.products.length === 0) {
+            sessionStorage.removeItem('ai_last_context');
+            return;
+        }
+
+        sessionStorage.setItem('ai_last_context', JSON.stringify(memory));
+    },
+
+    getAiMemory: () => {
+        try {
+            const raw = sessionStorage.getItem('ai_last_context');
+            return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+            sessionStorage.removeItem('ai_last_context');
+            return null;
+        }
+    },
+
     loadAiHistory: () => {
         const history = sessionStorage.getItem('ai_chat_history');
         const box = document.getElementById('msg-ai');
@@ -676,7 +709,7 @@ const ChatApp = {
         const list = document.createElement('div');
         list.className = 'chat-product-list';
 
-        products.slice(0, 3).forEach(product => {
+        products.forEach(product => {
             const card = document.createElement('div');
             card.className = 'chat-product-card';
 
@@ -752,6 +785,33 @@ const ChatApp = {
         ChatApp.aiThinkingEl = null;
     },
 
+    getTextStats: (value) => {
+        const text = typeof value === 'string' ? value : JSON.stringify(value || '');
+        const normalized = text.trim();
+        const bytes = new TextEncoder().encode(text).length;
+        const words = normalized === '' ? 0 : normalized.split(/\s+/).length;
+        const approxTokens = Math.max(1, Math.round(bytes / 4));
+
+        return {
+            chars: text.length,
+            bytes,
+            words,
+            approxTokens
+        };
+    },
+
+    logAiContext: (phase, payload) => {
+        try {
+            console.groupCollapsed(`[AI Context] ${phase}`);
+            Object.entries(payload || {}).forEach(([key, value]) => {
+                console.log(key, value);
+            });
+            console.groupEnd();
+        } catch (error) {
+            console.log(`[AI Context] ${phase}`, payload);
+        }
+    },
+
     send: (e, type) => {
         e.preventDefault();
         const form = e.target;
@@ -771,6 +831,17 @@ const ChatApp = {
         formData.append('action', type === 'ai' ? 'chat_ai' : 'send');
 
         if (type === 'ai') {
+            const aiMemory = ChatApp.getAiMemory();
+            if (aiMemory) {
+                formData.append('previous_ai_context', JSON.stringify(aiMemory));
+            }
+
+            ChatApp.logAiContext('send', {
+                action: 'chat_ai',
+                message: msg,
+                stats: ChatApp.getTextStats(msg),
+                previousAiMemory: aiMemory
+            });
             ChatApp.setAiPending(form, true);
             ChatApp.showAiThinking();
         }
@@ -779,13 +850,13 @@ const ChatApp = {
             .then(res => res.text())
             .then(text => {
                 try {
-                    return JSON.parse(text);
+                    return { rawText: text, data: JSON.parse(text) };
                 } catch (error) {
                     console.error('JSON Parse Error:', text);
-                    return { error: true, raw: text };
+                    return { rawText: text, data: { error: true, raw: text } };
                 }
             })
-            .then(data => {
+            .then(({ rawText, data }) => {
                 if (type === 'ai') {
                     ChatApp.removeAiThinking();
                     ChatApp.setAiPending(form, false);
@@ -798,6 +869,22 @@ const ChatApp = {
                         aiObj = { reply: aiContent, url: '', products: [], invoice: null };
                     }
 
+                    ChatApp.logAiContext('receive', {
+                        rawResponseStats: ChatApp.getTextStats(rawText),
+                        aiContentStats: ChatApp.getTextStats(aiContent),
+                        replyStats: ChatApp.getTextStats(aiObj.reply || ''),
+                        productsCount: Array.isArray(aiObj.products) ? aiObj.products.length : 0,
+                        hasInvoice: !!(aiObj.invoice && typeof aiObj.invoice === 'object'),
+                        parsedPayload: aiObj,
+                        backendDebug: data.debug || null
+                    });
+
+                    const providerDebug = data.debug?.provider_debug || null;
+                    if (providerDebug && providerDebug.status && providerDebug.status !== 'ok') {
+                        console.error('[OpenRouter Error]', providerDebug);
+                    }
+
+                    ChatApp.saveAiMemory(aiObj);
                     ChatApp.addAiResponse(
                         aiObj.reply,
                         Array.isArray(aiObj.products) ? aiObj.products : [],
@@ -861,6 +948,7 @@ const ChatApp = {
         ChatApp.removeAiThinking();
         document.getElementById('msg-ai').innerHTML = '<div class="chat-message bot">Xin chào! Tôi là AI tư vấn đồ lưu niệm sự kiện <?= $_ENV['APP_NAME'] ?>. Bạn cần tìm sản phẩm nào?</div>';
         sessionStorage.removeItem('ai_chat_history'); // Xóa lịch sử trong session
+        sessionStorage.removeItem('ai_last_context');
     }
 };
 

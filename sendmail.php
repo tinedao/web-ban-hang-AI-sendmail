@@ -30,7 +30,7 @@ function sendInvoiceEmail($toEmail, $toName, $orderId, $orderData, $orderItems) 
         $mail->Host       = 'smtp.gmail.com';                     
         $mail->SMTPAuth   = true;                                   
         $mail->Username   = $_ENV['EMAIL_ADMIN']; 
-        $mail->Password   = 'klnupvgegggzwmdr';
+        $mail->Password   = $_ENV['EMAIL_PASSWORD'];
         $mail->SMTPSecure = 'tls';            
         $mail->Port       = 587;                                    
 
