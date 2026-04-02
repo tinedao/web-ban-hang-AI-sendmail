@@ -635,7 +635,22 @@ if ($action === 'send') {
         if (preg_match('/\\b(?:tam|khoang|gan|budget|ngan sach|gia)\\s*(\\d+(?:[.,]\\d+)?)\\s*(trieu|tr|k|nghin|ngan)?\\b/u', $normalized, $matches)) {
             $centerPrice = $parseBudgetValue($matches[1] ?? '', $matches[2] ?? '');
             if ($centerPrice !== null) {
-                return ['min_price' => null, 'max_price' => (int)round($centerPrice * 1.15), 'label' => 'quanh muc ' . formatVND($centerPrice)];
+                return [
+                    'min_price' => (int)round($centerPrice * 0.85),
+                    'max_price' => (int)round($centerPrice * 1.15),
+                    'label' => 'quanh muc ' . formatVND($centerPrice),
+                ];
+            }
+        }
+
+        if (preg_match('/\\b(\\d+(?:[.,]\\d+)?)\\s*(trieu|tr|k|nghin|ngan)\\b/u', $normalized, $matches)) {
+            $centerPrice = $parseBudgetValue($matches[1] ?? '', $matches[2] ?? '');
+            if ($centerPrice !== null) {
+                return [
+                    'min_price' => (int)round($centerPrice * 0.85),
+                    'max_price' => (int)round($centerPrice * 1.15),
+                    'label' => 'quanh muc ' . formatVND($centerPrice),
+                ];
             }
         }
 
@@ -1267,9 +1282,9 @@ if ($action === 'send') {
     $buildProductFallbackPayload = function(array $products, array $intent) use ($chatbotClosing, $stripInternalProductFields): array {
         $clientProducts = array_map($stripInternalProductFields, $products);
         if (empty($products)) {
-            $budgetNote = $intent['budget_label'] !== '' ? ' trong khoang gia ' . $intent['budget_label'] : '';
+            $budgetNote = $intent['budget_label'] !== '' ? ' trong khoảng giá ' . $intent['budget_label'] : '';
             return [
-                'reply' => "Da, ben em chua thay mau that su khop{$budgetNote} voi nhu cau anh/chi vua nhan. Anh/chi co the doi them kieu dang hoac tam gia de em loc sat hon nhe.\n\n{$chatbotClosing}",
+                'reply' => "Dạ, bên em chưa thấy mẫu nào thật sự khớp{$budgetNote} với nhu cầu anh/chị vừa nhắn. Anh/chị có thể đổi thêm kiểu dáng hoặc tầm giá để em lọc sát hơn nhé.\n\nAnh/chị còn cần em hỗ trợ thêm gì không ạ?",
                 'url' => '',
                 'products' => [],
             ];
@@ -1279,15 +1294,15 @@ if ($action === 'send') {
         $bestTraits = $bestProduct['_traits'] ?? [];
         $detailUrl = count($clientProducts) === 1 ? trim((string)($clientProducts[0]['url'] ?? '')) : '';
         $replyParts = [];
-        $opening = 'Da em thay ' . trim((string)($bestProduct['name'] ?? 'mau nay')) . ' kha hop voi nhu cau cua anh/chi';
+        $opening = 'Dạ em thấy' . trim((string)($bestProduct['name'] ?? 'mẫu này')) . ' khá hợp với nhu cầu của anh/chị';
         if ($intent['audience'] !== '' && ($bestTraits['audience'] ?? '') === $intent['audience']) {
-            $opening .= ' vi mau nay thien ve ' . $intent['audience'];
+            $opening .= ' vì mẫu này thiên về ' . $intent['audience'];
         } elseif (($bestTraits['type'] ?? '') !== '') {
-            $opening .= ' neu anh/chi dang tim ' . mb_strtolower((string)$bestTraits['type'], 'UTF-8');
+            $opening .= ' nếu anh/chị đang tìm ' . mb_strtolower((string)$bestTraits['type'], 'UTF-8');
         }
         $replyParts[] = $opening . '.';
         if (!empty($bestProduct['price_formatted'])) {
-            $replyParts[] = 'Gia em nay khoang ' . trim((string)$bestProduct['price_formatted']) . '.';
+            $replyParts[] = 'Giá em nay khoảng ' . trim((string)$bestProduct['price_formatted']) . '.';
         }
         if (($bestTraits['fit_note'] ?? '') !== '') {
             $replyParts[] = 'Phan mo ta shop dang co goi y form/co ' . trim((string)$bestTraits['fit_note']) . '.';
@@ -1361,6 +1376,7 @@ if ($action === 'send') {
         $isSpecificQuery = $isSpecificProductIntent($intent);
         $useDescriptionAttributeTool = $shouldUseDescriptionAttributeTool($userMsg, $intent);
         $searchQuery = trim(($previousAiSearchHint !== '' ? $previousAiSearchHint . ' ' : '') . $intent['search']);
+        $usedAllEventsFallback = false;
         $productResult = $useDescriptionAttributeTool
             ? $queryProductsByDescriptionAttributes($intent, $isSpecificQuery ? 6 : 3)
             : getChatbotProductSuggestions([
@@ -1374,6 +1390,20 @@ if ($action === 'send') {
                 'max_price' => $intent['max_price'],
             ]);
 
+        if (!$useDescriptionAttributeTool && empty($productResult['products'])) {
+            $productResult = getChatbotProductSuggestions([
+                'search' => $searchQuery !== '' ? $searchQuery : $intent['search'],
+                'limit' => $isSpecificQuery ? 6 : 3,
+                'sort' => 'relevance',
+                'only_in_stock' => true,
+                'event_slug' => 'all',
+                'match_all_keywords' => false,
+                'min_price' => $intent['min_price'],
+                'max_price' => $intent['max_price'],
+            ]);
+            $usedAllEventsFallback = !empty($productResult['products']);
+        }
+
         $rankedProducts = $rankProductCandidates(is_array($productResult['products'] ?? null) ? $productResult['products'] : [], $intent);
         $selectedProducts = $isSpecificQuery ? $rankedProducts : array_slice($rankedProducts, 0, 3);
         $fallbackPayload = $buildProductFallbackPayload($selectedProducts, $intent);
@@ -1383,6 +1413,7 @@ if ($action === 'send') {
                 'tool_only' => true,
                 'search_query' => $searchQuery !== '' ? $searchQuery : $intent['search'],
                 'used_description_attribute_tool' => $useDescriptionAttributeTool,
+                'used_all_events_fallback' => $usedAllEventsFallback,
                 'description_tool_filters' => $productResult['applied_filters'] ?? [],
                 'is_specific_query' => $isSpecificQuery,
                 'used_previous_ai_context' => $usePreviousAiContext,
@@ -1400,6 +1431,7 @@ if ($action === 'send') {
         $productDebug = $buildAiDebug('product_lookup_ai', $productMessages, false, [], [
             'search_query' => $searchQuery !== '' ? $searchQuery : $intent['search'],
             'used_description_attribute_tool' => $useDescriptionAttributeTool,
+            'used_all_events_fallback' => $usedAllEventsFallback,
             'description_tool_filters' => $productResult['applied_filters'] ?? [],
             'is_specific_query' => $isSpecificQuery,
             'selected_count' => count($selectedProducts),
@@ -1448,7 +1480,7 @@ if ($action === 'send') {
     );
 } elseif ($action === 'admin_get_users') {
     if (!$isAdmin) {
-        echo json_encode(['status' => 'error', 'message' => 'Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p.']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn không có quyền truy cập.']);
         exit;
     }
 
@@ -1468,7 +1500,7 @@ if ($action === 'send') {
     echo json_encode(['status' => 'success', 'users' => $users]);
 } elseif ($action === 'admin_get_conversation') {
     if (!$isAdmin) {
-        echo json_encode(['status' => 'error', 'message' => 'Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p.']);
+        echo json_encode(['status' => 'error', 'message' => 'Bạn không có quyền truy cập.']);
         exit;
     }
 
@@ -1511,5 +1543,3 @@ if ($action === 'send') {
     echo json_encode(['status' => insertData('messages', $data) ? 'success' : 'error']);
 }
 ?>
-
-
